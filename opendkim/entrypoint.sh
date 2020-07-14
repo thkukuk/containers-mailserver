@@ -100,7 +100,7 @@ setup_timezone
 
 
 # Configure and run dkim only if we have domains
-if [ -z "$DKIM_DOMAINS" ]; then
+if [ -n "$DKIM_DOMAINS" ]; then
     setup_dkim
 fi
 
