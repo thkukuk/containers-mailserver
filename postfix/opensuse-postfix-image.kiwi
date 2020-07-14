@@ -17,7 +17,7 @@
         tag="latest"
         additionaltags="%PKG_VERSION%,%PKG_VERSION%-%RELEASE%"
         maintainer="Thorsten Kukuk &lt;kukuk@suse.com&gt;">
-	<entrypoint execute="/usr/local/bin/entrypoint.sh"/>
+	<entrypoint execute="/entrypoint/entrypoint.sh"/>
         <subcommand execute="postfix">
           <argument name="start"/>
         </subcommand>
