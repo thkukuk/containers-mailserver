@@ -8,6 +8,6 @@ With this collection of containers you can build your containerized mail server 
 
 ## postfix
 
-This image allows you to run POSTFIX internally to centralise outgoing email sending. The embedded postfix enables you to either send messages directly or relay them. to your company's main server_.
+This image allows you to run POSTFIX internally to centralise outgoing email sending. The embedded postfix enables you to either send messages directly or relay them. to your company's main server.
 
-This is a _server side_ POSTFIX image, geared towards emails that need to be sent from your applications. This postfix configuration does not support client-side security features.
+This is a _server side_ POSTFIX image, for your applications sending emails.
