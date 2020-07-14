@@ -52,7 +52,6 @@
     <package name="opendkim"/>
     <package name="mandoc"/>
     <package name="-busybox-adduser"/>
-    <package name="-busybox-findutils"/>
     <package name="-busybox-man"/>
     <archive name="entrypoint.tar.gz"/>
   </packages>
