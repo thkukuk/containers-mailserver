@@ -3,7 +3,7 @@
 The command to run this container is:
 
 ```sh
-podman run -d --rm --name postfix -p 25:25 -e SMTP_SERVER=smtp.example.com registry.opensuse.org/opensuse/postfix
+podman run -d --rm --name postfix -p 25:25 -e SMTP_RELAYHOST=smtp.example.com registry.opensuse.org/opensuse/postfix
 ```
 
 ## Supported environment variables:
