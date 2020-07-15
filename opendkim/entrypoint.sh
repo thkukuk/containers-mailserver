@@ -45,7 +45,7 @@ setup_dkim() {
 	    echo "${selector}._domainkey.${domain} ${domain}:${selector}:${private_key}" >> /etc/opendkim/KeyTable
 	    echo "*@${domain} ${selector}._domainkey.${domain}" >> /etc/opendkim/SigningTable
 	else
-	    if [ -n "${DKIM_AUTOGENERATE}" ]; then
+	    if [ "${DKIM_AUTOGENERATE}" -eq 1 ]; then
 		echo "- ${domain}: auto generating key"
 		mkdir -p "${domain_dir}"
 		opendkim-genkey -b 2048 -h rsa-sha256 -r -v --subdomains -s ${selector} -D "${domain_dir}" -d "${domain}"
