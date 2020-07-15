@@ -53,11 +53,9 @@
   <packages type="bootstrap">
     <package name="bash"/>
     <package name="opendkim"/>
-    <package name="sed"/>
     <package name="mandoc"/>
     <package name="-busybox-adduser"/>
     <package name="-busybox-man"/>
-    <package name="-busybox-sed"/>
     <archive name="entrypoint.tar.gz"/>
   </packages>
 </image>

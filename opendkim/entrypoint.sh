@@ -20,7 +20,7 @@ setup_dkim() {
     echo "Configuring OpenDKIM:"
     mkdir -p /run/opendkim
     chown -R opendkim:opendkim /run/opendkim
-    sed -e -i 's|^Socket.*|Socket inet:8891@0.0.0.0|g' /etc/opendkim/opendkim.conf
+    sed -i -e 's|^Socket.*|Socket inet:8891@0.0.0.0|g' /etc/opendkim/opendkim.conf
     echo > /etc/opendkim/TrustedHosts
     echo > /etc/opendkim/KeyTable
     echo > /etc/opendkim/SigningTable
