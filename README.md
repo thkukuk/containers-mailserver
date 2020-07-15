@@ -13,3 +13,10 @@ This image allows you to run POSTFIX internally to centralise outgoing email sen
 This is a _server side_ POSTFIX image best useable as relay for your applications sending emails.
 
 Instructions: [README](postfix/README.md)
+
+## DKIM
+
+This images provides the `DomainKeys Identified Mail (DKIM)` service
+implemented through opendkim and can be used together with the postfix image.
+
+Instructions: [README](opendkim/README.md)

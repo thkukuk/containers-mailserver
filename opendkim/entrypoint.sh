@@ -20,18 +20,16 @@ setup_dkim() {
     echo "Configuring OpenDKIM:"
     mkdir -p /run/opendkim
     chown -R opendkim:opendkim /run/opendkim
-    sed -e -i 's|^Socket.*|Socket inet:8891@localhost|g' /etc/opendkim/opendkim.conf
-    # Since it's an internal service anyways, it's safe
-    # to assume that *all* hosts are trusted. XXX Unsafe!
-    # 127.0.0.1
-    # ::1
-    # localhost
-    # *.example.com
-    # *.example.net
-    # *.example.org
-    echo "0.0.0.0/0" > /etc/opendkim/TrustedHosts
+    sed -e -i 's|^Socket.*|Socket inet:8891@0.0.0.0|g' /etc/opendkim/opendkim.conf
+    echo > /etc/opendkim/TrustedHosts
     echo > /etc/opendkim/KeyTable
     echo > /etc/opendkim/SigningTable
+    echo "127.0.0.1" >> /etc/opendkim/TrustedHosts
+    echo "::1" >> /etc/opendkim/TrustedHosts
+    echo "localhost" >> /etc/opendkim/TrustedHosts
+    for h in ${DKIM_TRUSTEDHOSTS}; do
+        echo "${h}" >> /etc/opendkim/TrustedHosts
+    done
 
     mkdir -p /etc/opendkim/keys
     for d in $DKIM_DOMAINS; do

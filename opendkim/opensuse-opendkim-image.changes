@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 15 09:06:59 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Use real sed, not busybox-sed (missing functinality)
+- Enhance entrypoint.sh to set TrustedHosts
+- Adjust default arguments to start opendkim
+
+-------------------------------------------------------------------
 Tue Jul 14 14:45:29 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Initial version
