@@ -110,8 +110,5 @@ user@example1.com 0
 
 The example call:
 ```sh
-podman run -d --rm --name postfix -p "25:25" -e VIRTUAL_MBOX=1 -e
-VMAIL_UID=5000 -e SERVER_HOSTNAME=smtp.example.com -e
-SMTP_RELAYHOST=relay.example.com -e SMTP_USERNAME=mailer -e
-SMTP_PASSWORD='XXX' -v "/srv/postfix/vmail:/var/spool/vmail" -v "/srv/postfix/etc/vhosts:/etc/postfix/vhosts:ro" -v "/srv/postfix/etc/vmaps:/etc/postfix/vmaps:ro" -v "/srv/postfix/etc/vquota:/etc/postfix/vquota:ro" registry.opensuse.org/opensuse/postfix:latest
+podman run -d --rm --name postfix -p "25:25" -e VIRTUAL_MBOX=1 -e VMAIL_UID=5000 -e SERVER_HOSTNAME=smtp.example.com -e SMTP_RELAYHOST=relay.example.com -e SMTP_USERNAME=mailer -e SMTP_PASSWORD='XXX' -v "/srv/postfix/vmail:/var/spool/vmail" -v "/srv/postfix/etc/vhosts:/etc/postfix/vhosts:ro" -v "/srv/postfix/etc/vmaps:/etc/postfix/vmaps:ro" -v "/srv/postfix/etc/vquota:/etc/postfix/vquota:ro" registry.opensuse.org/opensuse/postfix:latest
 ```
