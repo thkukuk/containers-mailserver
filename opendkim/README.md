@@ -16,14 +16,14 @@ mounted, otherwise the keys will be deleted when the container is removed.
 
 DNS records to configure can be found in the container log or by running
 
-``` sh
+```
 podman exec opendkim cat /etc/opendkim/keys/*/*.txt
 ```
 
 The output should be something like
 
-```sh
-$ podman exec opendkim podman exec opendkim sh -c "cat /etc/opendkim/keys/*/*.txt"
+```
+$ podman exec opendkim sh -c "cat /etc/opendkim/keys/*/*.txt"
 
 mail._domainkey IN      TXT     ( "v=DKIM1; h=rsa-sha256; k=rsa; s=email; "
           "p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqi64WpMyqVXY1kj2NZ0sVxoWiYs5Z7/bdfqegXbcYv3f95U1Be8Jt52GqYLtm+0J/MgHztKkT/lD7N3ZCFnk1RwxMXm6EFKjfpBaU57NxP/uXzXYNCi50H38h0u8VVbKnhx6qY20Nw7kix4mAwkPe21B7bcaqjegdRJ281S05cddb9No+wJ7zS7KLAp/uJAROYwx4XTmF71XBl"
