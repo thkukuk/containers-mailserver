@@ -58,7 +58,7 @@ update_db() {
     done
 }
 
-configure_aliases() {
+setup_aliases() {
 
     get_alias_maps() {
 	test -d /etc/aliases.d && test "$(echo /etc/aliases.d/*)" != "/etc/aliases.d/*" && \
@@ -82,67 +82,137 @@ configure_aliases() {
     set_config_value "alias_maps" "${ALLMAPS}"
 }
 
-configure_postfix() {
-
+setup_network() {
     if [ -n "${INET_PROTOCOLS}" ]; then
-	set_config_value "inet_protocols" "{$INET_PROTOCOLS}"
+        set_config_value "inet_protocols" "{$INET_PROTOCOLS}"
     else
-	# XXX Containers have ipv6 addresses, but not routeable
-	#if ip addr show dev lo | grep -q inet6 ; then
-	#    set_config_value "inet_protocols" "all"
-	#else
-	     set_config_value "inet_protocols" "ipv4"
-	#fi
+        # XXX Containers have ipv6 addresses, but not routeable
+        #if ip addr show dev lo | grep -q inet6 ; then
+        #    set_config_value "inet_protocols" "all"
+        #else
+             set_config_value "inet_protocols" "ipv4"
+        #fi
     fi
 
     # Always allow private networks, we are running in a container...
     networks='127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16'
     if [ -n "${SMTP_NETWORKS}" ]; then
-	networks+=", ${SMTP_NETWORKS}"
+        networks+=", ${SMTP_NETWORKS}"
     fi
     set_config_value "mynetworks" "${networks}"
+}
+
+setup_relayhost() {
+    if [ -n "${SMTP_RELAYHOST}" ]; then
+        SMTP_PORT="${SMTP_PORT:-587}"
+        set_config_value "relayhost" "${SMTP_RELAYHOST}:${SMTP_PORT}"
+        set_config_value "smtp_use_tls" "yes"
+        # XXX enforce tls, not sure if this is always a good idea
+        set_config_value "smtp_enforce_tls" "yes"
+        set_config_value "smtp_tls_CApath" "/etc/postfix/ssl/cacerts"
+        # Debug only:
+        # set_config_value "smtp_tls_loglevel" "2"
+    fi
+
+    if [ -n "${SMTP_USERNAME}" ]; then
+        file_env 'SMTP_PASSWORD'
+        if [ -z "${SMTP_PASSWORD}" ]; then
+            echo "SMTP_PASSWORD is not set"
+            exit 1
+        fi
+        # Add auth credentials to sasl_passwd
+        echo "Adding SASL authentication configuration"
+        echo "${SMTP_RELAYHOST} ${SMTP_USERNAME}:${SMTP_PASSWORD}" >> /etc/postfix/sasl_passwd
+        update_db sasl_passwd
+        set_config_value "smtp_sasl_password_maps" "hash:/etc/postfix/sasl_passwd"
+        set_config_value "smtp_sasl_auth_enable" "yes"
+        set_config_value "smtp_sasl_security_options" "noanonymous"
+    fi
+
+    if [ -n "${MASQUERADE_DOMAINS}" ]; then
+        set_config_value "masquerade_domains" "${MASQUERADE_DOMAINS}"
+    fi
+}
+
+setup_vhosts() {
+    # Create the vmail user with the requested UID, else 5000
+    VMAIL_UID="${VMAIL_UID:-5000}"
+    if [ -x /usr/sbin/adduser ]; then
+	adduser -D -h /var/spool/vmail -g "Virtual Mail User" -u ${VMAIL_UID} -s /sbin/nologin vmail
+	if [ $? -ne 0 ]; then
+            echo "ERROR: creating of vmail user failed! Aborting."
+            exit 1
+        fi
+    else
+        useradd -d /var/spool/vmail -U -c "Virtual Mail User" -u ${VMAIL_UID} vmail
+        if [ $? -ne 0 ]; then
+            echo "ERROR: creating of vmail user failed! Aborting."
+            exit 1
+        fi
+	if [ ! -d /var/spool/vmail ]; then
+            mkdir -p /var/spool/vmail
+            chown vmail:vmail /var/spool/vmail
+            chmod 775 /var/spool/vmail
+	fi
+    fi
+
+    set_config_value "virtual_mailbox_domains" "/etc/postfix/vhosts"
+    set_config_value "virtual_mailbox_base" "/var/spool/vmail"
+    set_config_value "virtual_mailbox_maps" "hash:/etc/postfix/vmaps"
+    set_config_value "virtual_minimum_uid" "1000"
+    set_config_value "virtual_uid_maps" "static:${VMAIL_UID}"
+    set_config_value "virtual_gid_maps" "static:${VMAIL_UID}"
+    set_config_value "home_mailbox" "Maildir/"
+    # XXX make this configureable and adjust message_size_limit
+    set_config_value "virtual_mailbox_limit" "0"
+    set_config_value "mailbox_size_limit" "0" # "51200000"
+    set_config_value "message_size_limit" "0" # "10240000"
+    set_config_value "virtual_mailbox_limit_maps" "hash:/etc/postfix/vquota"
+    # Only create vhosts if not provided by admin
+    if [ ! -f /etc/postfix/vhosts ]; then
+        if [ -n "${VIRTUAL_DOMAINS}" ]; then
+	    for d in ${VIRTUAL_DOMAINS}; do
+		echo "$d" >> /etc/postfix/vhosts
+	    done
+        else
+            echo "${SERVER_DOMAIN}" > /etc/postfix/vhosts
+        fi
+    fi
+
+    # Only create vmaps if not provided by admin
+    if [ ! -f /etc/postfix/vmaps ]; then
+	for mail in ${VIRTUAL_USERS} ; do
+	    user=${mail%@*}
+	    domain=${mail#*@}
+            echo "${mail} ${domain}/${user}/" >> /etc/postfix/vmaps
+	    echo "${mail} 0" >> /etc/postfix/vquota
+	done
+    fi
+    update_db vmaps
+    update_db vquota
+}
+
+configure_postfix() {
+
+    setup_network
 
     if [ -n "${SERVER_HOSTNAME}" ]; then
 	if [ -z "${SERVER_DOMAIN}" ]; then
 	    SERVER_DOMAIN=$(echo "${SERVER_HOSTNAME}" | cut -d"." -f2-)
 	fi
 	set_config_value "myhostname" "${SERVER_HOSTNAME}"
-	set_config_value "mydomain" "${SERVER_DOMAIN}"
+        set_config_value "mydomain" "${SERVER_DOMAIN}"
     fi
 
-    if [ -n "${MYDESTINATION}" ]; then
-	set_config_value "mydestination" "${MYDESTINATION}"
+    if [ "${VIRTUAL_MBOX}" -eq "1" ]; then
+        setup_vhosts
+    else
+        if [ -n "${MYDESTINATION}" ]; then
+	    set_config_value "mydestination" "${MYDESTINATION}"
+        fi
     fi
 
-    if [ -n "${SMTP_RELAYHOST}" ]; then
-        SMTP_PORT="${SMTP_PORT:-587}"
-    	set_config_value "relayhost" "${SMTP_RELAYHOST}:${SMTP_PORT}"
-    	set_config_value "smtp_use_tls" "yes"
-    	# XXX enforce tls, not sure if this is always a good idea
-	set_config_value "smtp_enforce_tls" "yes"
-	set_config_value "smtp_tls_CApath" "/etc/postfix/ssl/cacerts"
-	# Debug only:
-	# set_config_value "smtp_tls_loglevel" "2"
-    fi
-
-    if [ -n "${SMTP_USERNAME}" ]; then
-	file_env 'SMTP_PASSWORD'
-	if [ -z "${SMTP_PASSWORD}" ]; then
-	    echo "SMTP_PASSWORD is not set"
-	    exit 1
-	fi
-	# Add auth credentials to sasl_passwd
-	echo "Adding SASL authentication configuration"
-	echo "${SMTP_RELAYHOST} ${SMTP_USERNAME}:${SMTP_PASSWORD}" >> /etc/postfix/sasl_passwd
-	update_db sasl_passwd
-	set_config_value "smtp_sasl_password_maps" "hash:/etc/postfix/sasl_passwd"
-	set_config_value "smtp_sasl_auth_enable" "yes"
-	set_config_value "smtp_sasl_security_options" "noanonymous"
-    fi
-
-    if [ -n "${MASQUERADE_DOMAINS}" ]; then
-        set_config_value "masquerade_domains" "${MASQUERADE_DOMAINS}"
-    fi
+    setup_relayhost
 
     # Add maps to config and create database
     for i in canonical relocated sender_canonical transport virtual; do
@@ -152,6 +222,8 @@ configure_postfix() {
     set_config_value "smtpd_sender_restrictions" "hash:/etc/postfix/access"
     # Generate and update maps
     update_db access relay
+
+    setup_aliases
 }
 
 terminate() {
@@ -209,7 +281,6 @@ setup_timezone
 # configure postfix even if postfix will not be started, to
 # allow to see the result with postconf for debugging/testing.
 configure_postfix
-configure_aliases
 
 # If host mounting /var/spool/postfix, we need to delete the old pid file
 # before starting services
