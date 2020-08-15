@@ -109,7 +109,7 @@ setup_ldap_uidgid() {
     chown -R ldap:ldap /etc/ldap
 }
 
-init_database() {
+init_slapd() {
 
     CNT_VAR="$(ls -A -I lost+found --ignore=.* /var/lib/ldap)"
     CNT_ETC="$(ls -A -I lost+found --ignore=.* /etc/openldap/slapd.d)"
@@ -139,21 +139,22 @@ init_database() {
     }
 
     function init_slapd_d() {
-	local initldif failed basedn adminpass
+	local initldif failed
 
         echo "Creating initial slapd configuration... "
 
         # Create the slapd.d directory.
-        rm -rf ${SLAPD_CONF}/cn=config ${SLAPD_CONF}/cn=config.ldif
-        mkdir -p ${SLAPD_CONF}
-        initldif=`mktemp -t slapadd.XXXXXX`
+        rm -rf "${SLAPD_CONF}/cn=config" "${SLAPD_CONF}/cn=config.ldif"
+        mkdir -p "${SLAPD_CONF}"
+        initldif=$(mktemp -t slapadd.XXXXXX)
 	sed -e "s|@SUFFIX@|${LDAP_BASE_DN}|g" \
 	    -e "s|@PASSWORD@|${LDAP_ADMIN_PASSWORD}|g" \
-	    /entrypoint/slapd.init.ldif > ${initldif}
+	    /entrypoint/slapd.init.ldif > "${initldif}"
 
 	slapadd -F "${SLAPD_CONF}" -b "cn=config" \
 		-l "${initldif}" || failed=1
         if [ "$failed" ]; then
+            rm -f "${initldif}"
 	    echo "Loading initial configuration failed!" >&2
             exit 1
         fi
@@ -162,40 +163,39 @@ init_database() {
     }
 
     function create_new_directory() {
-        local basedn dc organization adminpass
+        local dc
 
-	dc="`echo ${LDAP_DOMAIN} | sed 's/^\.//; s/\..*$//'`"
+	dc="$(echo "${LDAP_DOMAIN}" | sed 's/^\.//; s/\..*$//')"
 
-        echo -n "  Creating LDAP directory... " >&2
+        echo "Creating LDAP directory... " >&2
 
-        initldif=`mktemp -t slapadd.XXXXXX`
+        initldif=$(mktemp -t slapadd.XXXXXX)
         cat <<-EOF > "${initldif}"
-                dn: ${LDAP_BASE_DN}
-                objectClass: top
-                objectClass: dcObject
-                objectClass: organization
-                o: $organization
-                dc: $dc
+		dn: ${LDAP_BASE_DN}
+		objectClass: top
+		objectClass: dcObject
+		objectClass: organization
+		o: ${LDAP_ORGANISATION}
+		dc: $dc
 
-                dn: cn=admin,${LDAP_BASE_DN}
-                objectClass: simpleSecurityObject
-                objectClass: organizationalRole
-                cn: admin
-                description: LDAP administrator
-                userPassword: ${LDAP_ADMIN_PASSWORD}
-        EOF
+		dn: cn=admin,${LDAP_BASE_DN}
+		objectClass: simpleSecurityObject
+		objectClass: organizationalRole
+		cn: admin
+		description: LDAP administrator
+		userPassword: ${LDAP_ADMIN_PASSWORD}
+	EOF
 
 	slapadd -F "${SLAPD_CONF}" -b "${LDAP_BASE_DN}" \
                 -l "${initldif}" || failed=1
         if [ "$failed" ]; then
-            rm -f ${initldif}
+            rm -f "${initldif}"
 	    echo "Loading initial configuration failed!" >&2
             exit 1
         fi
 
-        rm -f ${initldif}
+        rm -f "${initldif}"
     }
-
 
     echo "Database and config directory are empty..."
     echo "Init new ldap server..."
@@ -255,7 +255,7 @@ if [ "$1" = '/usr/sbin/slapd' ]; then
     # slapd specific initialization
     init_ldap_url
     init_ldaps_url
-    init_database
+    init_slapd
 
     echo "Starting OpenLDAP server"
     exec /usr/sbin/slapd -d "${SLAPD_LOG_LEVEL}" -u ldap -g ldap \
