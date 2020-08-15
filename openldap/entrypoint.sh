@@ -9,7 +9,7 @@ LDAP_PORT=${LDAP_PORT:-389}
 LDAPS_PORT=${LDAPS_PORT:-636}
 LDAPI_URL=${LDAPI_URL:-"ldapi:///"}
 #SLAPD_CONFIG_ARG="-F /etc/openldap/slapd.d"
-SLAPD_DEBUG=${SLAPD_DEBUG:-0}
+SLAPD_LOG_LEVEL=${SLAPD_LOG_LEVEL:-1}
 SLAPD_RUN_DIR=${SLAPD_RUN_DIR:-"/run/slapd"}
 SLAPD_SLP_REG=${SLAPD_SLP_REG:-"-o slp=off"}
 
@@ -82,7 +82,7 @@ if [ "$1" = '/usr/sbin/slapd' ]; then
 	chown ldap:ldap "$SLAPD_RUN_DIR"
     fi
     echo "Starting OpenLDAP server"
-    exec /usr/sbin/slapd -d ${SLAPD_DEBUG} \
+    exec /usr/sbin/slapd -d ${SLAPD_LOG_LEVEL} \
 	 -h "$LDAP_URL $LDAPS_URL $LDAPI_URL" \
          $SLAPD_CONFIG_ARG $USER_CMD $GROUP_CMD \
          $OPENLDAP_SLAPD_PARAMS $SLAPD_SLP_REG
