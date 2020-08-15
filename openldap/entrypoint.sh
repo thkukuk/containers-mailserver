@@ -29,7 +29,7 @@ init_ldap_url() {
     test -n "${LDAP_URL}" && return
 
     local FQDN
-    FQDN="$(/bin/hostname --fqdn)"
+    FQDN="$(/bin/hostname -f)"
     LDAP_URL="lda://$FQDN:$LDAP_PORT"
 }
 
@@ -37,7 +37,7 @@ init_ldaps_url() {
     test -n "${LDAPS_URL}" && return
 
     local FQDN
-    FQDN="$(/bin/hostname --fqdn)"
+    FQDN="$(/bin/hostname -f)"
     LDAPS_URL="ldaps://$FQDN:$LDAPS_PORT"
 }
 
