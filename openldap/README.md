@@ -1,4 +1,4 @@
-# Postfix container
+# OpenLDAP container
 
 The command to run this container is:
 
