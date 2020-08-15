@@ -106,7 +106,7 @@ setup_ldap_uidgid() {
 
     # Fix permissions
     chown -R ldap:ldap /var/lib/ldap
-    chown -R ldap:ldap /etc/ldap
+    chown -R ldap:ldap /etc/openldap
 }
 
 init_slapd() {
@@ -201,12 +201,18 @@ init_slapd() {
     echo "Init new ldap server..."
 
     file_env 'LDAP_ADMIN_PASSWORD'
+    if [ -z "${LDAP_ADMIN_PASSWORD}" ]; then
+	echo "LDAP admin password (LDAP_ADMIN_PASSWORD) not set!" >&2
+	echo "Using default password 'admin'" >&2
+	LDAP_ADMIN_PASSWORD="admin"
+    fi
     file_env 'LDAP_CONFIG_PASSWORD'
 
     get_ldap_base_dn
     init_slapd_d
     create_new_directory
     chown -R ldap:ldap "${SLAPD_CONF}"
+    chown -R ldap:ldap /var/lib/ldap
 }
 
 # usage: file_env VAR [DEFAULT]
@@ -259,7 +265,7 @@ if [ "$1" = '/usr/sbin/slapd' ]; then
 
     echo "Starting OpenLDAP server"
     exec /usr/sbin/slapd -d "${SLAPD_LOG_LEVEL}" -u ldap -g ldap \
-	 -h "$LDAP_URL $LDAPS_URL $LDAPI_URL" "${SLAPD_SLP_REG}"
+	 -h "$LDAP_URL $LDAPS_URL $LDAPI_URL" ${SLAPD_SLP_REG}
 else
     exec "$@"
 fi
