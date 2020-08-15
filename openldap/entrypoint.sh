@@ -197,6 +197,21 @@ init_slapd() {
         rm -f "${initldif}"
     }
 
+    function ldap_add_or_modify() {
+	local LDIF_FILE=$1
+
+	echo "Processing file ${LDIF_FILE}"
+	sed -i "s|@LDAP_BASE_DN@|${LDAP_BASE_DN}|g" $LDIF_FILE
+	sed -i "s|@LDAP_BACKEND@|${LDAP_BACKEND}|g" $LDIF_FILE
+	sed -i "s|@LDAP_DOMAIN@|${LDAP_DOMAIN}|g" $LDIF_FILE
+
+	if grep -iq changetype $LDIF_FILE ; then
+            ldapmodify -Y EXTERNAL -Q -H ldapi:/// -D cn=admin,$LDAP_BASE_DN -w "$LDAP_ADMIN_PASSWORD" -f $LDIF_FILE
+	else
+            ldapadd -Y EXTERNAL -Q -H ldapi:/// -D cn=admin,$LDAP_BASE_DN -w "$LDAP_ADMIN_PASSWORD" -f $LDIF_FILE
+	fi
+    }
+
     echo "Database and config directory are empty..."
     echo "Init new ldap server..."
 
@@ -207,12 +222,65 @@ init_slapd() {
 	LDAP_ADMIN_PASSWORD="admin"
     fi
     file_env 'LDAP_CONFIG_PASSWORD'
+    if [ -z "${LDAP_CONFIG_PASSWORD}" ]; then
+	echo "LDAP config password (LDAP_CONFIG_PASSWORD) not set!" >&2
+	echo "Using default password 'config'" >&2
+	LDAP_CONFIG_PASSWORD="config"
+    fi
 
     get_ldap_base_dn
     init_slapd_d
     create_new_directory
     chown -R ldap:ldap "${SLAPD_CONF}"
     chown -R ldap:ldap /var/lib/ldap
+
+    # start slapd for further initialization work
+    /usr/sbin/slapd -d "${SLAPD_LOG_LEVEL}" -u ldap -g ldap \
+		    -h "ldapi:///" ${SLAPD_SLP_REG} &
+
+    echo "Waiting for OpenLDAP to start..."
+    while [ ! -e /run/slapd/slapd.pid ]; do sleep 0.1; done
+
+    echo "Add bootstrap schemas..."
+
+    # add ppolicy schema
+    ldapadd -c -Y EXTERNAL -Q -H ldapi:/// -f /etc/openldapldap/schema/ppolicy.ldif
+
+    # XXX convert schemas to ldif
+    SCHEMAS=""
+    for f in $(find ${CONTAINER_SERVICE_DIR}/slapd/assets/config/bootstrap/schema -name \*.schema -type f|sort); do
+        SCHEMAS="$SCHEMAS ${f}"
+      done
+    ${CONTAINER_SERVICE_DIR}/slapd/assets/schema-to-ldif.sh "$SCHEMAS"
+
+    # XXX add converted schemas
+    for f in $(find ${CONTAINER_SERVICE_DIR}/slapd/assets/config/bootstrap/schema -name \*.ldif -type f|sort); do
+        log-helper debug "Processing file ${f}"
+        # add schema if not already exists
+        SCHEMA=$(basename "${f}" .ldif)
+        ADD_SCHEMA=$(is_new_schema $SCHEMA)
+        if [ "$ADD_SCHEMA" -eq 1 ]; then
+            ldapadd -c -Y EXTERNAL -Q -H ldapi:/// -f $f
+        else
+            echo "schema ${f} already exists"
+        fi
+    done
+
+    # set config password
+    LDAP_CONFIG_PASSWORD_ENCRYPTED=$(slappasswd -s "$LDAP_CONFIG_PASSWORD")
+    sed -i -e "s|@LDAP_CONFIG_PASSWORD_ENCRYPTED@|${LDAP_CONFIG_PASSWORD_ENCRYPTED}|g" /entrypoint/set-config-password.ldif
+    ldap_add_or_modify /entrypoint/set-config-password.ldif
+    ldap_add_or_modify /entrypoint/security.ldif
+    ldap_add_or_modify /entrypoint/memberOf.ldif
+    ldap_add_or_modify /entrypoint/refint.ldif
+    ldap_add_or_modify /entrypoint/index.ldif
+
+    # process config files (*.ldif) in custom directory
+    echo "Add image bootstrap ldif..."
+    for f in $(find /entrypoint/custom -mindepth 1 -maxdepth 1 -type f -name \*.ldif  | sort); do
+	echo "Processing file ${f}"
+        ldap_add_or_modify "$f"
+    done
 }
 
 # usage: file_env VAR [DEFAULT]
