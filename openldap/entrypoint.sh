@@ -109,7 +109,7 @@ if [ "$1" = '/usr/sbin/slapd' ]; then
 	chown ldap:ldap $SLAPD_PID_DIR
     fi
     echo -n "Starting OpenLDAP server"
-    exec /usr/sbin/slapd  -h "$LDAP_URL $LDAPS_URL $LDAPI_URL" \
+    exec /usr/sbin/slapd -d 0 -h "$LDAP_URL $LDAPS_URL $LDAPI_URL" \
          $SLAPD_CONFIG_ARG $USER_CMD $GROUP_CMD \
          $OPENLDAP_SLAPD_PARAMS $SLAPD_SLP_REG
 else
