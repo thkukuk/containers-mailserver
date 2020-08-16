@@ -318,10 +318,10 @@ init_slapd() {
     ldapadd -c -Y EXTERNAL -Q -H ldapi:/// -f /etc/openldap/schema/ppolicy.ldif
 
     mkdir -p /entrypoint/schema
+    mkdir -p /entrypoint/ldif/custom
     # Seed ldif from internal path if specified
     file_env 'LDAP_SEED_INTERNAL_LDIF_PATH'
     if [ -n "${LDAP_SEED_INTERNAL_LDIF_PATH}" ]; then
-	mkdir -p /entrypoint/ldif/custom/
 	cp -R "${LDAP_SEED_INTERNAL_LDIF_PATH}"/*.ldif /entrypoint/ldif/custom/
     fi
 
@@ -353,14 +353,14 @@ init_slapd() {
 
     # set config password
     LDAP_CONFIG_PASSWORD_ENCRYPTED=$(slappasswd -s "$LDAP_CONFIG_PASSWORD")
-    sed -i -e "s|@LDAP_CONFIG_PASSWORD_ENCRYPTED@|${LDAP_CONFIG_PASSWORD_ENCRYPTED}|g" /entrypoint/set-config-password.ldif
-    ldap_add_or_modify /entrypoint/set-config-password.ldif
-    rm -f /entrypoint/set-config-password.ldif
-    ldap_add_or_modify /entrypoint/security.ldif
-    rm -f /entrypoint/security.ldif
-    ldap_add_or_modify /entrypoint/memberOf.ldif
-    ldap_add_or_modify /entrypoint/refint.ldif
-    ldap_add_or_modify /entrypoint/index.ldif
+    sed -i -e "s|@LDAP_CONFIG_PASSWORD_ENCRYPTED@|${LDAP_CONFIG_PASSWORD_ENCRYPTED}|g" /entrypoint/ldif/set-config-password.ldif
+    ldap_add_or_modify /entrypoint/ldif/set-config-password.ldif
+    rm -f /entrypoint/ldif/set-config-password.ldif
+    ldap_add_or_modify /entrypoint/ldif/security.ldif
+    rm -f /entrypoint/ldif/security.ldif
+    ldap_add_or_modify /entrypoint/ldif/memberOf.ldif
+    ldap_add_or_modify /entrypoint/ldif/refint.ldif
+    ldap_add_or_modify /entrypoint/ldif/index.ldif
 
     # process config files (*.ldif) in custom directory
     echo "Add image bootstrap ldif..."
