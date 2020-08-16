@@ -109,8 +109,8 @@ setup_ldap_uidgid() {
     fi
 
     echo 'OpenLDAP GID/UID'
-    echo "User uid:    $(id -u openldap)"
-    echo "User gid:    $(id -g openldap)"
+    echo "User uid:    $(id -u ldap)"
+    echo "User gid:    $(id -g ldap)"
     echo "uid/gid changed: ${LDAP_UIDGID_CHANGED}"
 
     # Fix permissions
@@ -240,9 +240,11 @@ init_slapd() {
 
 	echo "Add TLS config..."
 
+	mkdir -p /etc/openldap/certs
+
 	# generate a certificate and key with ssl-helper tool if LDAP_CRT and LDAP_KEY files don't exists
-	# https://github.com/osixia/docker-light-baseimage/blob/stable/image/service-available/:ssl-tools/assets/tool/ssl-helper
-	ssl-helper $LDAP_SSL_HELPER_PREFIX $LDAP_TLS_CRT_PATH $LDAP_TLS_KEY_PATH $LDAP_TLS_CA_CRT_PATH
+	# https://github.com/osixia/docker-light-baseimage/blob/alpine/image/service-available/:ssl-tools/assets/tool/ssl-helper
+	ssl-helper ldap "$LDAP_TLS_CRT" "$LDAP_TLS_KEY" "$LDAP_TLS_CA_CRT"
 
 	# create DHParamFile if not found
 	if [ ! -f "${LDAP_TLS_DH_PARAM}" ]; then
@@ -263,7 +265,7 @@ init_slapd() {
 	sed -i "s|@LDAP_TLS_CIPHER_SUITE@|${LDAP_TLS_CIPHER_SUITE}|g" /entrypoint/tls/enable.ldif
 	sed -i "s|@LDAP_TLS_VERIFY_CLIENT@|${LDAP_TLS_VERIFY_CLIENT}|g" /entrypoint/tls/enable.ldif
 
-	ldapmodify -Y EXTERNAL -Q -H ldapi:/// -f /entrypoint/tls/tls-enable.ldif
+	ldapmodify -Y EXTERNAL -Q -H ldapi:/// -f /entrypoint/tls/enable.ldif
 
 	# enforce TLS
 	if [ "${LDAP_TLS_ENFORCE}" == "true" ]; then
@@ -276,7 +278,7 @@ init_slapd() {
 
 	SLAPD_PID=$(cat /run/slapd/slapd.pid)
 	kill -15 "$SLAPD_PID"
-	while [ -e /proc/"$SLAPD_PID" ]; do sleep 0.1; done # wait until slapd is terminated
+	while [ -e /proc/"$SLAPD_PID" ]; do sleep 1; done # wait until slapd is terminated
     }
 
     echo "Database and config directory are empty..."
@@ -308,13 +310,14 @@ init_slapd() {
 		    -h "ldapi:///" ${SLAPD_SLP_REG} &
 
     echo "Waiting for OpenLDAP to start..."
-    while [ ! -e /run/slapd/slapd.pid ]; do sleep 0.1; done
+    while [ ! -e /run/slapd/slapd.pid ]; do sleep 1; done
 
     echo "Add bootstrap schemas..."
 
     # add ppolicy schema
-    ldapadd -c -Y EXTERNAL -Q -H ldapi:/// -f /etc/openldapldap/schema/ppolicy.ldif
+    ldapadd -c -Y EXTERNAL -Q -H ldapi:/// -f /etc/openldap/schema/ppolicy.ldif
 
+    mkdir -p /entrypoint/schema
     # Seed ldif from internal path if specified
     file_env 'LDAP_SEED_INTERNAL_LDIF_PATH'
     if [ -n "${LDAP_SEED_INTERNAL_LDIF_PATH}" ]; then
@@ -336,7 +339,6 @@ init_slapd() {
 	schema2ldif "${f}" > "${schema_dir}/${ldif_file}"
     done
 
-    # XXX add converted schemas
     for f in $(find entrypoint/schema -name \*.ldif -type f); do
         echo "Processing file ${f}"
         # add schema if not already exists
@@ -362,7 +364,7 @@ init_slapd() {
 
     # process config files (*.ldif) in custom directory
     echo "Add image bootstrap ldif..."
-    for f in $(find /entrypoint/custom -mindepth 1 -maxdepth 1 -type f -name \*.ldif  | sort); do
+    for f in $(find /entrypoint/ldif/custom -mindepth 1 -maxdepth 1 -type f -name \*.ldif  | sort); do
 	echo "Processing file ${f}"
         ldap_add_or_modify "$f"
     done
