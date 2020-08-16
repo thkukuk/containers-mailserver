@@ -23,8 +23,12 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `LDAP_BASE_DN`	Ldap base DN. If empty automatically set from `LDAP_DOMAIN` value. Defaults to (`empty`)
 - `LDAP_ADMIN_PASSWORD`	Ldap Admin password. Defaults to `admin`
 - `LDAP_CONFIG_PASSWORD`	Ldap Config password. Defaults to `config`
-
+- `LDAP_TLS_CA_CRT`
+- `LDAP_TLS_CRT`
+- `LDAP_TLS_KEY`
+- `LDAP_TLS_DH_PARAM`
 
 ## Data persistence volumes
+- `/etc/openldap/certs`		TLS certificates for slapd
 - `/etc/openldap/slapd.d`	slapd configuration files
 - `/var/lib/ldap`	OpenLDAP database

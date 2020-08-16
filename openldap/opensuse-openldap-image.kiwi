@@ -53,6 +53,8 @@
     <package name="openldap2"/>
     <package name="openldap2-client"/>
     <package name="openldap2-ppolicy-check-password"/>
+    <package name="cfssl"/>
+    <package name="openssl"/>
     <package name="mandoc"/>
     <package name="cyrus-sasl"/>
     <package name="cyrus-sasl-plain"/>
