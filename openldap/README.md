@@ -28,6 +28,9 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `LDAP_TLS_KEY`
 - `LDAP_TLS_DH_PARAM`
 
+- `LDAP_SEED_INTERNAL_LDIF_PATH`
+- `LDAP_SEED_INTERNAL_SCHEMA_PATH`
+
 ## Data persistence volumes
 - `/etc/openldap/certs`		TLS certificates for slapd
 - `/etc/openldap/slapd.d`	slapd configuration files

@@ -206,6 +206,17 @@ init_slapd() {
         rm -f "${initldif}"
     }
 
+    function is_new_schema() {
+	local COUNT
+
+	COUNT=$(ldapsearch -Q -Y EXTERNAL -H ldapi:/// -b cn=schema,cn=config cn | grep -c "}$1,")
+	if [ "$COUNT" -eq 0 ]; then
+	    echo 1
+	else
+	    echo 0
+	fi
+    }
+
     function ldap_add_or_modify() {
 	local LDIF_FILE=$1
 
@@ -221,7 +232,12 @@ init_slapd() {
 	fi
     }
 
-    setup_tls() {
+    function setup_tls() {
+
+	if [ "${LDAP_TLS}" != "true" ]; then
+	    return
+	fi
+
 	echo "Add TLS config..."
 
 	# generate a certificate and key with ssl-helper tool if LDAP_CRT and LDAP_KEY files don't exists
@@ -299,19 +315,33 @@ init_slapd() {
     # add ppolicy schema
     ldapadd -c -Y EXTERNAL -Q -H ldapi:/// -f /etc/openldapldap/schema/ppolicy.ldif
 
-    # XXX convert schemas to ldif
-    SCHEMAS=""
-    for f in $(find ${CONTAINER_SERVICE_DIR}/slapd/assets/config/bootstrap/schema -name \*.schema -type f|sort); do
-        SCHEMAS="$SCHEMAS ${f}"
-      done
-    ${CONTAINER_SERVICE_DIR}/slapd/assets/schema-to-ldif.sh "$SCHEMAS"
+    # Seed ldif from internal path if specified
+    file_env 'LDAP_SEED_INTERNAL_LDIF_PATH'
+    if [ -n "${LDAP_SEED_INTERNAL_LDIF_PATH}" ]; then
+	mkdir -p /entrypoint/ldif/custom/
+	cp -R "${LDAP_SEED_INTERNAL_LDIF_PATH}"/*.ldif /entrypoint/ldif/custom/
+    fi
+
+    # Seed schema from internal path if specified
+    file_env 'LDAP_SEED_INTERNAL_SCHEMA_PATH'
+    if [ -n "${LDAP_SEED_INTERNAL_SCHEMA_PATH}" ]; then
+	mkdir -p /entrypoint/schema/custom/
+	cp -R "${LDAP_SEED_INTERNAL_SCHEMA_PATH}"/*.schema /entrypoint/schema/custom/
+    fi
+
+    # convert schemas to ldif
+    for f in $(find /entrypoint/schema -name \*.schema -type f); do
+	ldif_file="$(basename "${f}" .schema).ldif"
+	schema_dir=$(dirname "${f}")
+	schema2ldif "${f}" > "${schema_dir}/${ldif_file}"
+    done
 
     # XXX add converted schemas
-    for f in $(find ${CONTAINER_SERVICE_DIR}/slapd/assets/config/bootstrap/schema -name \*.ldif -type f|sort); do
-        log-helper debug "Processing file ${f}"
+    for f in $(find entrypoint/schema -name \*.ldif -type f); do
+        echo "Processing file ${f}"
         # add schema if not already exists
         SCHEMA=$(basename "${f}" .ldif)
-        ADD_SCHEMA=$(is_new_schema $SCHEMA)
+        ADD_SCHEMA=$(is_new_schema "$SCHEMA")
         if [ "$ADD_SCHEMA" -eq 1 ]; then
             ldapadd -c -Y EXTERNAL -Q -H ldapi:/// -f "$f"
         else
@@ -337,8 +367,19 @@ init_slapd() {
         ldap_add_or_modify "$f"
     done
 
+    setup_tls
+}
+
+# ldap client config
+setup_ldap_conf() {
     if [ "${LDAP_TLS}" == "true" ]; then
-	setup_tls
+	echo "Configure ldap client TLS configuration..."
+	echo "TLS_CACERT ${LDAP_TLS_CA_CRT}" >> /etc/openldap/ldap.conf
+	echo "TLS_REQCERT ${LDAP_TLS_VERIFY_CLIENT}" >> /etc/openldap/ldap.conf
+
+	[[ -f "$HOME/.ldaprc" ]] && rm -f "$HOME/.ldaprc"
+	echo "TLS_CERT ${LDAP_TLS_CRT_PATH}" > "$HOME/.ldaprc"
+	echo "TLS_KEY ${LDAP_TLS_KEY_PATH}" >> "$HOME/.ldaprc"
     fi
 }
 
@@ -379,6 +420,7 @@ ulimit -n "$LDAP_NOFILE"
 # Generic setup
 setup_timezone
 setup_ldap_uidgid
+setup_ldap_conf
 
 if [ "$1" = '/usr/sbin/slapd' ]; then
     if [ ! -d "$SLAPD_RUN_DIR" ]; then
