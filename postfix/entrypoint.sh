@@ -2,6 +2,9 @@
 
 [ "${DEBUG}" = "yes" ] && set -x
 
+VIRTUAL_MBOX=${VIRTUAL_MBOX:-"0"}
+USE_LDAP=${USE_LDAP:-"0"}
+
 export PATH=/usr/sbin:/sbin:${PATH}
 
 setup_timezone() {
@@ -138,27 +141,71 @@ setup_vhosts() {
     # Create the vmail user with the requested UID, else 5000
     VMAIL_UID="${VMAIL_UID:-5000}"
     if [ -x /usr/sbin/adduser ]; then
-	adduser -D -h /var/spool/vmail -g "Virtual Mail User" -u ${VMAIL_UID} -s /sbin/nologin vmail
-	if [ $? -ne 0 ]; then
-            echo "ERROR: creating of vmail user failed! Aborting."
-            exit 1
-        fi
+	adduser -D -h /var/spool/vmail -g "Virtual Mail User" -u "${VMAIL_UID}" -s /sbin/nologin vmail
     else
-        useradd -d /var/spool/vmail -U -c "Virtual Mail User" -u ${VMAIL_UID} vmail
-        if [ $? -ne 0 ]; then
-            echo "ERROR: creating of vmail user failed! Aborting."
-            exit 1
-        fi
-	if [ ! -d /var/spool/vmail ]; then
-            mkdir -p /var/spool/vmail
-            chown vmail:vmail /var/spool/vmail
-            chmod 775 /var/spool/vmail
-	fi
+        useradd -d /var/spool/vmail -U -c "Virtual Mail User" -u "${VMAIL_UID}" vmail
+    fi
+    if [ $? -ne 0 ]; then
+        echo "ERROR: creating of vmail user failed! Aborting."
+        exit 1
     fi
 
-    set_config_value "virtual_mailbox_domains" "/etc/postfix/vhosts"
+    if [ ! -d /var/spool/vmail ]; then
+        mkdir -p /var/spool/vmail
+        chown vmail:vmail /var/spool/vmail
+        chmod 775 /var/spool/vmail
+    fi
+
+    if [ "${USE_LDAP}" -eq "1" ]; then
+	LDAP_BASE_DN=${LDAP_BASE_DN:-"dc=example,dc=org"}
+	LDAP_SERVER_URL=${LDAP_SERVER_URL:-"ldap://localhost"}
+	file_env LDAP_MAIL_READER_PASSWORD
+        if [ -z "${LDAP_MAIL_READER_PASSWORD}" ]; then
+            echo "LDAP_MAIL_READER_PASSWORD is not set"
+            exit 1
+        fi
+
+	# Adjust variables
+	sed -i -e "s|@LDAP_BASE_DN@|${LDAP_BASE_DN}|g" \
+	    -e "s|@LDAP_SERVER_URL@|${LDAP_SERVER_URL}|g" \
+	    -e "s|@LDAP_MAIL_READER_PASSWORD@|${LDAP_MAIL_READER_PASSWORD}|g" \
+	    /etc/postfix/ldap/*
+
+	set_config_value "virtual_alias_domains" "ldap:/etc/postfix/ldap/virtual_alias_domains"
+	#set_config_value "virtual_mailbox_domains" "\$myhostname"
+	set_config_value "virtual_alias_maps" "ldap:/etc/postfix/ldap/virtual_alias_maps"
+	set_config_value "virtual_mailbox_maps" "ldap:/etc/postfix/ldap/virtual_mailbox_maps"
+	set_config_value "smtpd_sender_login_maps" "ldap:/etc/postfix/ldap/smtpd_sender_login_maps"
+    else
+	set_config_value "virtual_mailbox_domains" "/etc/postfix/vhosts"
+	set_config_value "virtual_mailbox_maps" "hash:/etc/postfix/vmaps"
+	set_config_value "virtual_mailbox_limit_maps" "hash:/etc/postfix/vquota"
+
+	# Only create vhosts if not provided by admin
+	if [ ! -f /etc/postfix/vhosts ]; then
+            if [ -n "${VIRTUAL_DOMAINS}" ]; then
+		for d in ${VIRTUAL_DOMAINS}; do
+		    echo "$d" >> /etc/postfix/vhosts
+		done
+            else
+		echo "${SERVER_DOMAIN}" > /etc/postfix/vhosts
+            fi
+	fi
+
+	# Only create vmaps if not provided by admin
+	if [ ! -f /etc/postfix/vmaps ]; then
+	    for mail in ${VIRTUAL_USERS} ; do
+		user=${mail%@*}
+		domain=${mail#*@}
+		echo "${mail} ${domain}/${user}/" >> /etc/postfix/vmaps
+		echo "${mail} 0" >> /etc/postfix/vquota
+	    done
+	fi
+	update_db vmaps
+	update_db vquota
+    fi
+
     set_config_value "virtual_mailbox_base" "/var/spool/vmail"
-    set_config_value "virtual_mailbox_maps" "hash:/etc/postfix/vmaps"
     set_config_value "virtual_minimum_uid" "1000"
     set_config_value "virtual_uid_maps" "static:${VMAIL_UID}"
     set_config_value "virtual_gid_maps" "static:${VMAIL_UID}"
@@ -167,34 +214,9 @@ setup_vhosts() {
     set_config_value "virtual_mailbox_limit" "0"
     set_config_value "mailbox_size_limit" "0" # "51200000"
     set_config_value "message_size_limit" "0" # "10240000"
-    set_config_value "virtual_mailbox_limit_maps" "hash:/etc/postfix/vquota"
-    # Only create vhosts if not provided by admin
-    if [ ! -f /etc/postfix/vhosts ]; then
-        if [ -n "${VIRTUAL_DOMAINS}" ]; then
-	    for d in ${VIRTUAL_DOMAINS}; do
-		echo "$d" >> /etc/postfix/vhosts
-	    done
-        else
-            echo "${SERVER_DOMAIN}" > /etc/postfix/vhosts
-        fi
-    fi
-
-    # Only create vmaps if not provided by admin
-    if [ ! -f /etc/postfix/vmaps ]; then
-	for mail in ${VIRTUAL_USERS} ; do
-	    user=${mail%@*}
-	    domain=${mail#*@}
-            echo "${mail} ${domain}/${user}/" >> /etc/postfix/vmaps
-	    echo "${mail} 0" >> /etc/postfix/vquota
-	done
-    fi
-    update_db vmaps
-    update_db vquota
 }
 
 configure_postfix() {
-
-    VIRTUAL_MBOX=${VIRTUAL_MBOX:-"0"}
 
     setup_network
 
