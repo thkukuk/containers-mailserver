@@ -56,8 +56,6 @@
     <package name="cfssl"/>
     <package name="openssl"/>
     <package name="mandoc"/>
-    <package name="cyrus-sasl"/>
-    <package name="cyrus-sasl-plain"/>
     <package name="ca-certificates"/>
     <package name="ca-certificates-mozilla"/>
     <package name="-busybox-adduser"/>

@@ -97,12 +97,12 @@ setup_ldap_uidgid() {
     CUR_LDAP_GID=$(id -g ldap)
 
     LDAP_UIDGID_CHANGED=false
-    if [ "$LDAP_UID" != "$CUR_LDAP_UID" ]; then
+    if [ -n "${LDAP_UID}" ] && [ "$LDAP_UID" != "$CUR_LDAP_UID" ]; then
 	echo "Current ldap UID (${CUR_LDAP_UID}) does not match LDAP_UID (${LDAP_UID}), adjusting..."
 	usermod -o -u "$LDAP_UID" ldap
 	LDAP_UIDGID_CHANGED=true
     fi
-    if [ "$LDAP_GID" != "$CUR_USER_GID" ]; then
+    if [ -n "${LDAP_GID}" ] && [ "$LDAP_GID" != "$CUR_USER_GID" ]; then
 	echo "Current ldap GID (${CUR_LDAP_GID}) does't match LDAP_GID (${LDAP_GID}), adjusting..."
 	groupmod -o -g "$LDAP_GID" ldap
 	LDAP_UIDGID_CHANGED=true
@@ -317,19 +317,18 @@ init_slapd() {
     # add ppolicy schema
     ldapadd -c -Y EXTERNAL -Q -H ldapi:/// -f /etc/openldap/schema/ppolicy.ldif
 
-    mkdir -p /entrypoint/schema
+    mkdir -p /entrypoint/schema/custom
     mkdir -p /entrypoint/ldif/custom
-    # Seed ldif from internal path if specified
-    file_env 'LDAP_SEED_INTERNAL_LDIF_PATH'
-    if [ -n "${LDAP_SEED_INTERNAL_LDIF_PATH}" ]; then
-	cp -R "${LDAP_SEED_INTERNAL_LDIF_PATH}"/*.ldif /entrypoint/ldif/custom/
+    # Seed ldif if a path is specified
+    file_env 'LDAP_SEED_LDIF_PATH'
+    if [ -n "${LDAP_SEED_LDIF_PATH}" ]; then
+	cp -R "${LDAP_SEED_LDIF_PATH}"/*.ldif /entrypoint/ldif/custom/
     fi
 
-    # Seed schema from internal path if specified
-    file_env 'LDAP_SEED_INTERNAL_SCHEMA_PATH'
-    if [ -n "${LDAP_SEED_INTERNAL_SCHEMA_PATH}" ]; then
-	mkdir -p /entrypoint/schema/custom/
-	cp -R "${LDAP_SEED_INTERNAL_SCHEMA_PATH}"/*.schema /entrypoint/schema/custom/
+    # Seed schema if a path is specified
+    file_env 'LDAP_SEED_SCHEMA_PATH'
+    if [ -n "${LDAP_SEED_SCHEMA_PATH}" ]; then
+	cp -R "${LDAP_SEED_SCHEMA_PATH}"/*.schema /entrypoint/schema/custom/
     fi
 
     # convert schemas to ldif
