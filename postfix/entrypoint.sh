@@ -194,6 +194,8 @@ setup_vhosts() {
 
 configure_postfix() {
 
+    VIRTUAL_MBOX=${VIRTUAL_MBOX:-"0"}
+
     setup_network
 
     if [ -n "${SERVER_HOSTNAME}" ]; then
@@ -257,13 +259,13 @@ stop_postfix() {
     ) > /dev/null 2>&1 &
 
     postfix stop
-    terminate /sbin/syslogd
+    terminate /usr/sbin/syslogd
 }
 
 start_postfix() {
     # Don't start syslogd in background while starting it in the background...
     # Logging to stdout does not work else.
-    /sbin/syslogd -n -S -O - &
+    /usr/sbin/syslogd -n -S -O - &
     "$@"
 }
 
