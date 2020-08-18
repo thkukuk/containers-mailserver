@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ "${DEBUG}" = "yes" ] && set -x
+[ "${DEBUG}" -eq "1" ] && set -x
 
 VIRTUAL_MBOX=${VIRTUAL_MBOX:-"0"}
 USE_LDAP=${USE_LDAP:-"0"}
@@ -165,7 +165,8 @@ setup_vhosts() {
             exit 1
         fi
 
-	# Adjust variables
+	# Adjust LDAP variables
+	mkdir -p /etc/postfix/ldap
 	for map in smtpd_sender_login_maps virtual_alias_domains virtual_alias_maps virtual_gid_maps virtual_mailbox_maps virtual_uid_maps ; do
 	    sed -e "s|@LDAP_BASE_DN@|${LDAP_BASE_DN}|g" \
 		-e "s|@LDAP_SERVER_URL@|${LDAP_SERVER_URL}|g" \
