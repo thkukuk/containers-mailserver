@@ -166,10 +166,12 @@ setup_vhosts() {
         fi
 
 	# Adjust variables
-	sed -i -e "s|@LDAP_BASE_DN@|${LDAP_BASE_DN}|g" \
-	    -e "s|@LDAP_SERVER_URL@|${LDAP_SERVER_URL}|g" \
-	    -e "s|@LDAP_MAIL_READER_PASSWORD@|${LDAP_MAIL_READER_PASSWORD}|g" \
-	    /etc/postfix/ldap/*
+	for map in smtpd_sender_login_maps virtual_alias_domains virtual_alias_maps virtual_gid_maps virtual_mailbox_maps virtual_uid_maps ; do
+	    sed -e "s|@LDAP_BASE_DN@|${LDAP_BASE_DN}|g" \
+		-e "s|@LDAP_SERVER_URL@|${LDAP_SERVER_URL}|g" \
+		-e "s|@LDAP_MAIL_READER_PASSWORD@|${LDAP_MAIL_READER_PASSWORD}|g" \
+		"/entrypoint/ldap/${map}" > "/etc/postfix/ldap/${map}"
+	done
 
 	set_config_value "virtual_alias_domains" "ldap:/etc/postfix/ldap/virtual_alias_domains"
 	#set_config_value "virtual_mailbox_domains" "\$myhostname"
