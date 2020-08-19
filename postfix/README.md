@@ -9,7 +9,7 @@ podman run -d --rm --name postfix -p 25:25 -e SMTP_RELAYHOST=smtp.example.com re
 In all examples, `podman` can be replaced directly with `docker`.
 
 ## Supported environment variables:
-- `DEBUG=yes|no`	Enables "set -x" in the entrypoint script.
+- `DEBUG=[0|1]`		Enables "set -x" in the entrypoint script.
 - `TZ`			Timezone to use in the container.
 - `SERVER_HOSTNAME` 	Server hostname. Emails will appear to come from the hostname's domain.
 - `SERVER_DOMAIN`   	If not set, the domain part of `SERVER_HOSTNAME` will be used.
@@ -21,11 +21,14 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `INET_PROTOCOLS`	The network interface protocols used for connections. Valid values are "all", "ipv4", "ipv6" or "ipv4,ipv6". The default value is "ipv4".
 - `MASQUERADE_DOMAINS`	Comma separated list of domains that must have their subdomain structure stripped off.
 - `MYDESTINATION`	List of domains for which mails are delivered locally instead of forwarding to another machine.
-- `VIRTUAL_MBOX=1`	Create virtual mail boxes in /var/spool/vmail owned by user vmail.
+- `VIRTUAL_MBOX=[0|1]`	Create virtual mail boxes in /var/spool/vmail owned by user vmail.
 - `VMAIL_UID=5000`	User ID and group ID of the vmail user for virtual domains and mailboxes.
 - `VIRTUAL_DOMAINS=`	Whitespace seperated list of virtual domains, will be written to `/etc/postfix/vhosts`.
 - `VIRTUAL_USERS=`	Whitespace seperated list of virtual users email addresses.
-
+- `USE_LDAP=[0|1]`	Use LDAP for virtual mail box user accounts
+- `LDAP_BASE_DN`	LDAP base DN, defaults to `dc=example,dc=org`
+- `LDAP_SERVER_URL`	LDAP Server URL, defaults to `ldap://localhost`
+- `LDAP_MAIL_READER_PASSWORD`	Password for the cn=mailAccountReader,ou=Manager,dc=example,dc=org account
 
 ## Data persistence volumes
 - `/var/spool/postfix`	Postfix mail queues. A data volume should be used in order to save the queue content if the container restarts.
