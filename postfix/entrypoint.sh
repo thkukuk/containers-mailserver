@@ -175,25 +175,12 @@ setup_vhosts() {
 	done
 
 	set_config_value "virtual_alias_domains" "ldap:/etc/postfix/ldap/virtual_alias_domains"
-	#set_config_value "virtual_mailbox_domains" "\$myhostname"
 	set_config_value "virtual_alias_maps" "ldap:/etc/postfix/ldap/virtual_alias_maps"
 	set_config_value "virtual_mailbox_maps" "ldap:/etc/postfix/ldap/virtual_mailbox_maps"
 	set_config_value "smtpd_sender_login_maps" "ldap:/etc/postfix/ldap/smtpd_sender_login_maps"
     else
-	set_config_value "virtual_mailbox_domains" "/etc/postfix/vhosts"
 	set_config_value "virtual_mailbox_maps" "hash:/etc/postfix/vmaps"
 	set_config_value "virtual_mailbox_limit_maps" "hash:/etc/postfix/vquota"
-
-	# Only create vhosts if not provided by admin
-	if [ ! -f /etc/postfix/vhosts ]; then
-            if [ -n "${VIRTUAL_DOMAINS}" ]; then
-		for d in ${VIRTUAL_DOMAINS}; do
-		    echo "$d" >> /etc/postfix/vhosts
-		done
-            else
-		echo "${SERVER_DOMAIN}" > /etc/postfix/vhosts
-            fi
-	fi
 
 	# Only create vmaps if not provided by admin
 	if [ ! -f /etc/postfix/vmaps ]; then
@@ -204,9 +191,21 @@ setup_vhosts() {
 		echo "${mail} 0" >> /etc/postfix/vquota
 	    done
 	fi
-	update_db vmaps
 	update_db vquota
     fi
+
+    set_config_value "virtual_mailbox_domains" "/etc/postfix/vhosts"
+    # Only create vhosts if not provided by admin
+    if [ ! -f /etc/postfix/vhosts ]; then
+        if [ -n "${VIRTUAL_DOMAINS}" ]; then
+	    for d in ${VIRTUAL_DOMAINS}; do
+		echo "$d" >> /etc/postfix/vhosts
+	    done
+        else
+	    echo "${SERVER_DOMAIN}" > /etc/postfix/vhosts
+        fi
+    fi
+    update_db vmaps
 
     set_config_value "virtual_mailbox_base" "/var/spool/vmail"
     set_config_value "virtual_minimum_uid" "1000"
