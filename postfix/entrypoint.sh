@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ "${DEBUG}" -eq "1" ] && set -x
+[ "${DEBUG}" = "1" ] && set -x
 
 VIRTUAL_MBOX=${VIRTUAL_MBOX:-"0"}
 USE_LDAP=${USE_LDAP:-"0"}
@@ -159,6 +159,7 @@ setup_vhosts() {
     if [ "${USE_LDAP}" -eq "1" ]; then
 	LDAP_BASE_DN=${LDAP_BASE_DN:-"dc=example,dc=org"}
 	LDAP_SERVER_URL=${LDAP_SERVER_URL:-"ldap://localhost"}
+        LDAP_USE_TLS=${LDAP_USE_TLS:-"1"}
 	file_env LDAP_MAIL_READER_PASSWORD
         if [ -z "${LDAP_MAIL_READER_PASSWORD}" ]; then
             echo "LDAP_MAIL_READER_PASSWORD is not set"
@@ -172,6 +173,11 @@ setup_vhosts() {
 		-e "s|@LDAP_SERVER_URL@|${LDAP_SERVER_URL}|g" \
 		-e "s|@LDAP_MAIL_READER_PASSWORD@|${LDAP_MAIL_READER_PASSWORD}|g" \
 		"/entrypoint/ldap/${map}" > "/etc/postfix/ldap/${map}"
+             if [ "${LDAP_USE_TLS}" = "1" ]; then
+                 sed -i -e 's|^start_tls.*|start_tls = yes|g' "/etc/postfix/ldap/${map}"
+             else
+                 sed -i -e 's|^start_tls.*|start_tls = no|g' "/etc/postfix/ldap/${map}"
+	     fi
 	done
 
 	set_config_value "virtual_alias_domains" "ldap:/etc/postfix/ldap/virtual_alias_domains"
