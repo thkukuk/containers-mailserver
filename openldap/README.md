@@ -10,7 +10,7 @@ In all examples, `podman` can be replaced directly with `docker`.
 
 ## Supported environment variables:
 ### Generic variables:
-- `DEBUG=yes|no`	Enables "set -x" in the entrypoint script
+- `DEBUG=[0|1]`	Enables "set -x" in the entrypoint script
 - `TZ`			Timezone to use in the container
 
 ### Variables for new database:
@@ -24,12 +24,13 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `LDAP_SEED_SCHEMA_PATH`	Path with additional schema which will be loaded
 
 ### Variables for TLS
-- `LDAP_TLS=true|false`
+- `LDAP_TLS=[1|0]`
 - `LDAP_TLS_CA_CRT`
+- `LDAP_TLS_CA_KEY`
 - `LDAP_TLS_CRT`
 - `LDAP_TLS_KEY`
 - `LDAP_TLS_DH_PARAM`
-- `LDAP_TLS_ENFORCE=true|false`
+- `LDAP_TLS_ENFORCE=[0|1]`
 - `LDAP_TLS_CIPHER_SUITE`
 - `LDAP_TLS_VERIFY_CLIENT`
 

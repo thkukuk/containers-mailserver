@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ "${DEBUG}" = "yes" ] && set -x
+[ "${DEBUG}" = "1" ] && set -x
 
 export PATH=/usr/sbin:/sbin:${PATH}
 
@@ -22,13 +22,14 @@ LDAP_DOMAIN=${LDAP_DOMAIN:-"example.org"}
 LDAP_BASE_DN=${LDAP_BASE_DN:-""}
 
 # TLS
-LDAP_TLS=${LDAP_TLS:-true}
+LDAP_TLS=${LDAP_TLS:-"1"}
 LDAP_TLS_CA_CRT=${LDAP_TLS_CA_CRT:-"/etc/openldap/certs/ca.crt"}
+LDAP_TLS_CA_KEY=${LDAP_TLS_CA_KEA:-"/etc/openldap/certs/ca.key"}
 LDAP_TLS_CRT=${LDAP_TLS_CRT:-"/etc/openldap/certs/tls.crt"}
 LDAP_TLS_KEY=${LDAP_TLS_KEY:-"/etc/openldap/certs/tls.key"}
 LDAP_TLS_DH_PARAM=${LDAP_TLS_DH_PARAM:-"/etc/openldap/certs/dhparam.pem"}
 
-LDAP_TLS_ENFORCE=${LDAP_TLS_ENFORCE:-false}
+LDAP_TLS_ENFORCE=${LDAP_TLS_ENFORCE:-"0"}
 LDAP_TLS_CIPHER_SUITE=${LDAP_TLS_CIPHER_SUITE:-"HIGH:-VERS-TLS-ALL:+VERS-TLS1.2:+VERS-TLS1.3:!SSLv3:!SSLv2:!ADH"}
 LDAP_TLS_VERIFY_CLIENT=${LDAP_TLS_VERIFY_CLIENT:-demand}
 
@@ -234,17 +235,14 @@ init_slapd() {
 
     function setup_tls() {
 
-	if [ "${LDAP_TLS}" != "true" ]; then
+	if [ "${LDAP_TLS}" != "1" ]; then
 	    return
 	fi
 
 	echo "Add TLS config..."
 
 	mkdir -p /etc/openldap/certs
-
-	# generate a certificate and key with ssl-helper tool if LDAP_CRT and LDAP_KEY files don't exists
-	# https://github.com/osixia/docker-light-baseimage/blob/alpine/image/service-available/:ssl-tools/assets/tool/ssl-helper
-	ssl-helper ldap "$LDAP_TLS_CRT" "$LDAP_TLS_KEY" "$LDAP_TLS_CA_CRT"
+	/entrypoint/ssl-helper ldap "$LDAP_TLS_CRT" "$LDAP_TLS_KEY" "$LDAP_TLS_CA_CRT" "$LDAP_TLS_CA_KEY"
 
 	# create DHParamFile if not found
 	if [ ! -f "${LDAP_TLS_DH_PARAM}" ]; then
@@ -268,7 +266,7 @@ init_slapd() {
 	ldapmodify -Y EXTERNAL -Q -H ldapi:/// -f /entrypoint/tls/enable.ldif
 
 	# enforce TLS
-	if [ "${LDAP_TLS_ENFORCE}" == "true" ]; then
+	if [ "${LDAP_TLS_ENFORCE}" = "1" ]; then
             echo "Enforce TLS..."
             ldapmodify -Y EXTERNAL -Q -H ldapi:/// -f /entrypoint/tls/enforce-enable.ldif
 	fi
@@ -373,7 +371,7 @@ init_slapd() {
 
 # ldap client config
 setup_ldap_conf() {
-    if [ "${LDAP_TLS}" == "true" ]; then
+    if [ "${LDAP_TLS}" == "1" ]; then
 	echo "Configure ldap client TLS configuration..."
 	echo "TLS_CACERT ${LDAP_TLS_CA_CRT}" >> /etc/openldap/ldap.conf
 	echo "TLS_REQCERT ${LDAP_TLS_VERIFY_CLIENT}" >> /etc/openldap/ldap.conf

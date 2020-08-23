@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# This tool helps to generate tls certificates
+
+CERT_FILE=$1
+KEY_FILE=$2
+CA_CERT_FILE=$3
+CA_KEY_FILE=$4
+
+if [ -z "${CERT_FILE}" ] || [ -z "${KEY_FILE}" ] || [ -z "${CA_FILE}" ]; then
+    echo "Usage: ssl-helper cert_file key_file ca_file [default_ca_dir]" >&2
+    exit 1
+fi
+
+if [ ! -e "${CA_CERT_FILE}" ]; then
+    echo "No CA cert file found, generating one"
+
+    DEFAULT_CA_CSR_COUNTRY=${DEFAULT_CA_CSR_COUNTRY:-"DE"}
+    DEFAULT_CA_CSR_STATE=${DEFAULT_CA_CSR_STATE:-"Bavaria"}
+    DEFAULT_CA_CSR_ORGANIZATION_UNIT=${DEFAULT_CA_CSR_ORGANIZATION_UNIT:-"OpenLDAP Dummy CA"}
+
+    # RSA: openssl genrsa -out "${DEFAULT_CA_DIR}/rootCA.key" 4096
+    # ecdsa 384
+    if [ ! -e "${CA_KEY_FILE}" ]; then
+	openssl ecparam -genkey -name secp384r1 -noout -out "${CA_KEY_FILE}"
+	chmod 600 "${CA_KEY_FILE}"
+    fi
+
+    openssl req -x509 -new -nodes -key "${TMP_CA_DIR}/dummyCA.key" -sha256 -days 1024 -subj "/C=${DEFAULT_CA_CSR_COUNTRY}/ST=${DEFAULT_CA_CSR_STATE}/O=${DEFAULT_CA_CSR_ORGANIZATION_UNIT}/CN=OpenLDAP" -out "${CA_CERT_FILE}"
+    chmod 600 "${CA_CERT_FILE}"
+fi
+
+if [ ! -e "${CERT_FILE}" ] && [ ! -e "${KEY_FILE}" ]; then
+
+    echo "No certificate file and certificate key provided, generate:"
+    echo "${CERT_FILE} and ${KEY_FILE}"
+
+    WORKDIR="$(mktemp -d)"
+
+    openssl genrsa -out "${KEY_FILE}" 2048
+    openssl req -new -sha256 -key "${KEY_FILE}" \
+	    -subj "/O=OpenLDAP Dummy CA/CN=${HOSTNAME}" -out "${WORKDIR}/openldap.csr"
+
+    openssl x509 -req -in "${WORKDIR}/openldap.csr" -CA "${CA_CERT_FILE}" \
+	    -CAkey "${CA_KEY_FILE}" -CAcreateserial -days 365 -sha256 \
+	    -out "${CERT_FILE}"
+
+    rm -rf "${WORKDIR}"
+
+elif [ ! -e "${KEY_FILE}" ]; then
+    echo "ERROR: Certificate file ${CERT_FILE} exists but not key file ${KEY_FILE}" >&2
+    exit 1
+elif [ ! -e "${CERT_FILE}" ]; then
+    echo "ERROR: Key file ${KEY_FILE} exists but not certificate file ${CERT_FILE}" >&2
+    exit 1
+else
+    echo "Files ${CERT_FILE} and ${KEY_FILE} exists, do nothing..."
+fi
