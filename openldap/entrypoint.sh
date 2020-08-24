@@ -242,7 +242,9 @@ init_slapd() {
 	echo "Add TLS config..."
 
 	mkdir -p /etc/openldap/certs
-	/entrypoint/ssl-helper ldap "$LDAP_TLS_CRT" "$LDAP_TLS_KEY" "$LDAP_TLS_CA_CRT" "$LDAP_TLS_CA_KEY"
+	/entrypoint/ssl-helper "$LDAP_TLS_CRT" "$LDAP_TLS_KEY" "$LDAP_TLS_CA_CRT" "$LDAP_TLS_CA_KEY"
+	# make sure slapd is allowed to read it the files
+	chown ldap:ldap "$LDAP_TLS_CRT" "$LDAP_TLS_KEY"
 
 	# create DHParamFile if not found
 	if [ ! -f "${LDAP_TLS_DH_PARAM}" ]; then
@@ -258,7 +260,7 @@ init_slapd() {
 	sed -i "s|@LDAP_TLS_CA_CRT_PATH@|${LDAP_TLS_CA_CRT}|g" /entrypoint/tls/enable.ldif
 	sed -i "s|@LDAP_TLS_CRT_PATH@|${LDAP_TLS_CRT}|g" /entrypoint/tls/enable.ldif
 	sed -i "s|@LDAP_TLS_KEY_PATH@|${LDAP_TLS_KEY}|g" /entrypoint/tls/enable.ldif
-	sed -i "s|@LDAP_TLS_DH_PARAM@|${LDAP_TLS_DH_PARAM}|g" /entrypoint/tls/enable.ldif
+	sed -i "s|@LDAP_TLS_DH_PARAM_PATH@|${LDAP_TLS_DH_PARAM}|g" /entrypoint/tls/enable.ldif
 
 	sed -i "s|@LDAP_TLS_CIPHER_SUITE@|${LDAP_TLS_CIPHER_SUITE}|g" /entrypoint/tls/enable.ldif
 	sed -i "s|@LDAP_TLS_VERIFY_CLIENT@|${LDAP_TLS_VERIFY_CLIENT}|g" /entrypoint/tls/enable.ldif
@@ -366,6 +368,7 @@ init_slapd() {
         ldap_add_or_modify "$f"
     done
 
+    # Check or create certificates
     setup_tls
 }
 
@@ -377,8 +380,8 @@ setup_ldap_conf() {
 	echo "TLS_REQCERT ${LDAP_TLS_VERIFY_CLIENT}" >> /etc/openldap/ldap.conf
 
 	[[ -f "$HOME/.ldaprc" ]] && rm -f "$HOME/.ldaprc"
-	echo "TLS_CERT ${LDAP_TLS_CRT_PATH}" > "$HOME/.ldaprc"
-	echo "TLS_KEY ${LDAP_TLS_KEY_PATH}" >> "$HOME/.ldaprc"
+	echo "TLS_CERT ${LDAP_TLS_CRT}" > "$HOME/.ldaprc"
+	echo "TLS_KEY ${LDAP_TLS_KEY}" >> "$HOME/.ldaprc"
     fi
 }
 
@@ -419,7 +422,6 @@ ulimit -n "$LDAP_NOFILE"
 # Generic setup
 setup_timezone
 setup_ldap_uidgid
-setup_ldap_conf
 
 if [ "$1" = '/usr/sbin/slapd' ]; then
     if [ ! -d "$SLAPD_RUN_DIR" ]; then
@@ -431,6 +433,7 @@ if [ "$1" = '/usr/sbin/slapd' ]; then
     init_ldap_url
     init_ldaps_url
     init_slapd
+    setup_ldap_conf
 
     echo "Starting OpenLDAP server"
     # (No double quote for SLAPD_SLP_REG)
@@ -438,5 +441,6 @@ if [ "$1" = '/usr/sbin/slapd' ]; then
     exec /usr/sbin/slapd -d "${SLAPD_LOG_LEVEL}" -u ldap -g ldap \
 	 -h "$LDAP_URL $LDAPS_URL $LDAPI_URL" ${SLAPD_SLP_REG}
 else
+    setup_ldap_conf
     exec "$@"
 fi
