@@ -1,6 +1,14 @@
 # OpenLDAP container
 
 - [Guide](#guide)
+  - [Create new ldap server](#create-new-ldap-server)
+  - [Data persistence](#data-persistence)
+  - [Server configuration](#server-configuration)
+  - [Seed ldap database with ldif](#seed-ldap-database-with-ldif)
+- [TLS](#tls)
+  - [Auto-generated certificate](#auto-generated-certificate)
+  - [Own certificate](#own-certificate)
+  - [Disable TLS](#disable-tls)
 - [Supported environment variables](#supported-environment-variables)
   - [Generic variables](#generic-variables)
   - [Variables for new database](#variables-for-new-database)
@@ -24,6 +32,12 @@ The command to run this container is:
 
 ```sh
 podman run -d --rm --name openldap -p 389:389 -p 636:636 -e LDAP_ADMIN_PASSWORD="admin" -e LDAP_CONFIG_PASSWORD="config" registry.opensuse.org/opensuse/openldap
+```
+
+To test the container a LDAP search could be issued:
+
+```sh
+podman exec -it openldap ldapsearch -x -W -H ldapi:/// -b dc=example,dc=org -D "cn=admin,dc=example,dc=org"
 ```
 
 In all examples, `podman` can be replaced directly with `docker`.
