@@ -96,8 +96,8 @@ Add --env LDAP_TLS=0 to the run command: `podman run -e LDAP_TLS=0 ...`
 - `LDAP_DOMAIN`		Ldap domain. Defaults to `example.org`
 - `LDAP_BASE_DN`	Ldap base DN. If empty automatically set from `LDAP_DOMAIN` value. Defaults to (`empty`)
 - `LDAP_ORGANISATION`	Organisation name. Defaults to `Example Inc.`
-- `LDAP_ADMIN_PASSWORD`	Ldap Admin password. Defaults to `admin`
-- `LDAP_CONFIG_PASSWORD`	Ldap Config password. Defaults to `config`
+- `LDAP_ADMIN_PASSWORD`	Ldap admin password. It's required to supply one if no database exists at startup.
+- `LDAP_CONFIG_PASSWORD`	Ldap config password. It's required to supply one if no database exists at startup.
 - `LDAP_BACKEND`	Database backend, defaults to `mdb`
 - `LDAP_SEED_LDIF_PATH` Path with additional ldif files which will be loaded
 - `LDAP_SEED_SCHEMA_PATH`	Path with additional schema which will be loaded
