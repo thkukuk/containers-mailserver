@@ -100,13 +100,22 @@ setup_ldap_uidgid() {
     LDAP_UIDGID_CHANGED=false
     if [ -n "${LDAP_UID}" ] && [ "$LDAP_UID" != "$CUR_LDAP_UID" ]; then
 	echo "Current ldap UID (${CUR_LDAP_UID}) does not match LDAP_UID (${LDAP_UID}), adjusting..."
-	usermod -o -u "$LDAP_UID" ldap
 	LDAP_UIDGID_CHANGED=true
     fi
     if [ -n "${LDAP_GID}" ] && [ "$LDAP_GID" != "$CUR_USER_GID" ]; then
-	echo "Current ldap GID (${CUR_LDAP_GID}) does't match LDAP_GID (${LDAP_GID}), adjusting..."
-	groupmod -o -g "$LDAP_GID" ldap
+	echo "Current ldap GID (${CUR_LDAP_GID}) does not match LDAP_GID (${LDAP_GID}), adjusting..."
 	LDAP_UIDGID_CHANGED=true
+    fi
+    if [ "${LDAP_UIDGID_CHANGED}" = "true" ]; then
+	test -z "${LDAP_UID}" && LDAP_UID=${CUR_LDAP_UID}
+	test -z "${LDAP_GID}" && LDAP_GID=${CUR_LDAP_GID}
+	if [ -x /usr/sbin/usermod ] && [ -x /usr/sbin/groupmod ]; then
+	    groupmod -o -g "$LDAP_GID" ldap
+	    usermod -o -u "$LDAP_UID" -g "$LDAP_GID" ldap
+	else
+	    sed -i -e "s|:${CUR_LDAP_UID}:${CUR_LDAP_GID}:|:${LDAP_UID}:${LDAP_GID}:|g" /etc/passwd
+	    sed -i -e "s|:${CUR_LDAP_GID}:|:${LDAP_GID}:|g" /etc/group
+	fi
     fi
 
     echo 'OpenLDAP GID/UID'
@@ -287,14 +296,12 @@ init_slapd() {
     file_env 'LDAP_ADMIN_PASSWORD'
     if [ -z "${LDAP_ADMIN_PASSWORD}" ]; then
 	echo "LDAP admin password (LDAP_ADMIN_PASSWORD) not set!" >&2
-	echo "Using default password 'admin'" >&2
-	LDAP_ADMIN_PASSWORD="admin"
+	exit 1
     fi
     file_env 'LDAP_CONFIG_PASSWORD'
     if [ -z "${LDAP_CONFIG_PASSWORD}" ]; then
 	echo "LDAP config password (LDAP_CONFIG_PASSWORD) not set!" >&2
-	echo "Using default password 'config'" >&2
-	LDAP_CONFIG_PASSWORD="config"
+	exit 1
     fi
 
     get_ldap_base_dn
