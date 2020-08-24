@@ -47,7 +47,7 @@ podman run -d --rm --name openldap -p 389:389 -p 636:636 -e LDAP_UID=333 -e LDAP
 
 ### Server configuration
 
-Since slapd.conf not used the ldap utils `ldapmodify`, `ldapadd` and
+Since slapd.conf is not used the ldap utils `ldapmodify`, `ldapadd` and
 `ldapdelete` are required to adjust the server configuration.
 
 ### Seed ldap database with ldif
@@ -68,7 +68,7 @@ into the default seeding directories of this image.
 TLS is be default configured and enabled. If no certificate is provided, a
 self-signed one is created during container startup for the container
 hostname. The container hostname can be set e.g. by
-`podman run --hostname ldap.example.org ...`.
+`podman run --hostname ldap.example.org ...`
 
 ### Own certificate
 
@@ -76,7 +76,7 @@ You can set your custom certificate at run time, by mounting a volume with the
 certificates into the container and adjusting the following environment variables:
 
 ```sh
-docker run --hostname ldap.example.org -v /srv/openldap/certs:/etc/openldap/certs:Z \
+podman run --hostname ldap.example.org -v /srv/openldap/certs:/etc/openldap/certs:Z \
        -e LDAP_TLS_CRT=/etc/openldap/certs/ldap.crt \
        -e LDAP_TLS_KEY=/etc/openldap/certs/ldap.key \
        -e LDAP_TLS_CA_CRT=/etc/openldap/certs/ca.crt \
@@ -85,7 +85,7 @@ docker run --hostname ldap.example.org -v /srv/openldap/certs:/etc/openldap/cert
 
 ### Disable TLS
 
-Add --env LDAP_TLS=0 to the run command: `docker run -e LDAP_TLS=0 ...`
+Add --env LDAP_TLS=0 to the run command: `podman run -e LDAP_TLS=0 ...`
 
 ## Supported environment variables:
 ### Generic variables:
