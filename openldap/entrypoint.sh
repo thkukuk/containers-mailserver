@@ -429,6 +429,8 @@ ulimit -n "$LDAP_NOFILE"
 # Generic setup
 setup_timezone
 setup_ldap_uidgid
+echo "Updating certificate store..."
+update-ca-certificates
 
 if [ "$1" = '/usr/sbin/slapd' ]; then
     if [ ! -d "$SLAPD_RUN_DIR" ]; then
