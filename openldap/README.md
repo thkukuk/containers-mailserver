@@ -117,15 +117,15 @@ Add --env LDAP_TLS=0 to the run command: `podman run -e LDAP_TLS=0 ...`
 - `LDAP_SEED_SCHEMA_PATH`	Path with additional schema which will be loaded
 
 ### Variables for TLS:
-- `LDAP_TLS=[1|0]`
-- `LDAP_TLS_CA_CRT`
-- `LDAP_TLS_CA_KEY`
-- `LDAP_TLS_CRT`
-- `LDAP_TLS_KEY`
-- `LDAP_TLS_DH_PARAM`
-- `LDAP_TLS_ENFORCE=[0|1]`
-- `LDAP_TLS_CIPHER_SUITE`
-- `LDAP_TLS_VERIFY_CLIENT`
+- `LDAP_TLS=[1|0]`	Enable TLS. Defaults to `1` (true).
+- `LDAP_TLS_CA_CRT`	LDAP ssl CA certificate. Defaults to `/etc/openldap/certs/ca.crt`.
+- `LDAP_TLS_CA_KEY`	Private LDAP CA key. Defaults to `/etc/openldap/certs/ca.key`.
+- `LDAP_TLS_CRT`	LDAP ssl certificate. Defaults to `/etc/openldap/certs/tls.crt`.
+- `LDAP_TLS_KEY`	Private LDAP ssl key. Defaults to `/etc/openldap/certs/tls.key`.
+- `LDAP_TLS_DH_PARAM`	LDAP ssl certificate dh param file.
+- `LDAP_TLS_ENFORCE=[0|1]`   Enforce TLS but except ldapi connections. Defaults to `0` (false).
+- `LDAP_TLS_CIPHER_SUITE`    TLS cipher suite.
+- `LDAP_TLS_VERIFY_CLIENT`   TLS verify client. Defaults to `demand`.
 
 ### Various configuration variables:
 - `LDAP_NOFILE` 	Number of open files (ulimt -n), default `1024`
