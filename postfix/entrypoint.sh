@@ -178,6 +178,9 @@ setup_vhosts() {
              else
                  sed -i -e 's|^start_tls.*|start_tls = no|g' "/etc/postfix/ldap/${map}"
 	     fi
+	     if [ -n "${LDAP_TLS_CA_CRT}" ]; then
+		 sed -i -e "s|^#tls_ca_cert_file =.*|tls_ca_cert_file = ${LDAP_TLS_CA_CRT}|g" "/etc/postfix/ldap/${map}"
+	     fi
 	done
 
 	set_config_value "virtual_alias_domains" "ldap:/etc/postfix/ldap/virtual_alias_domains"

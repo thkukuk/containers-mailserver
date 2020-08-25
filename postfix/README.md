@@ -30,6 +30,7 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `LDAP_SERVER_URL`	LDAP Server URL, defaults to `ldap://localhost`.
 - `LDAP_MAIL_READER_PASSWORD`	Password for the cn=mailAccountReader,ou=Manager,dc=example,dc=org account.
 - `LDAP_USE_TLS=[1|0]`	Use TLS for LDAP queries, by default enabled.
+- `LDAP_TLS_CA_CRT`	LDAP SSL CA certificate.
 
 ## Data persistence volumes
 - `/var/spool/postfix`	Postfix mail queues. A data volume should be used in order to save the queue content if the container restarts.
