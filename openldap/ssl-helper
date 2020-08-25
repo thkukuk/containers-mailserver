@@ -37,12 +37,16 @@ if [ ! -e "${CERT_FILE}" ] && [ ! -e "${KEY_FILE}" ]; then
     echo "${CERT_FILE} and ${KEY_FILE}"
 
     WORKDIR="$(mktemp -d)"
+    if [ -z "%${HOSTNAME}" ]; then
+	HOSTNAME=$(hostname -f)
+    fi
 
     echo "Generating certificate key..."
     openssl genrsa -out "${KEY_FILE}" 2048
     echo "Generating sign request..."
     openssl req -new -sha256 -key "${KEY_FILE}" \
-	    -subj "/O=OpenLDAP Dummy CA/CN=${HOSTNAME}" -out "${WORKDIR}/openldap.csr"
+	    -subj "/O=OpenLDAP Dummy CA/CN=${HOSTNAME}" \
+	    -out "${WORKDIR}/openldap.csr"
 
     echo "Generating certificate..."
     openssl x509 -req -in "${WORKDIR}/openldap.csr" -CA "${CA_CERT_FILE}" \
