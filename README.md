@@ -4,13 +4,17 @@ Simple Container images based on openSUSE busybox container image to build a con
 
 ## Description
 
-With this collection of containers you can build your containerized mail server for your kubernetes clusters or run them on a container host with docker and podman. You only need the containers which provide the functionality you really need. So if you don't need opendkim, no need to run that container. And as every service has it's own container, there is no need to update your postfix relay only because there is a dovecot update.
+With this collection of containers you can build your containerized mail server for your kubernetes clusters or run them on a container host with docker and podman. You only need the containers which provide the functionality you really need. So if you don't need opendkim, no need to run that container. And as every service has it's own container, there is no need to update your postfix server only because there is a dovecot update.
+
+## OpenLDAP
+
+This container images provides an OpenLDAP server. The initial setup is configured though environment variables and ldif files.
+
+Instructions: [README](openldap/README.md)
 
 ## postfix
 
-This image allows you to run POSTFIX internally to centralise outgoing email sending. The embedded postfix enables you to either send messages directly or relay them. to your company's main server.
-
-This is a _server side_ POSTFIX image best useable as relay for your applications sending emails.
+This image allows you to run POSTFIX as relay or for virtual users, where the users are provided via environment variables, files or LDAP.
 
 Instructions: [README](postfix/README.md)
 
