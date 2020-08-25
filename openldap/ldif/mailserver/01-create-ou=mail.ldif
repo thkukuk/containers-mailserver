@@ -1,0 +1,4 @@
+dn: ou=mail,@LDAP_BASE_DN@
+objectclass: organizationalUnit
+objectclass: top
+ou: mail

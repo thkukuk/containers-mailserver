@@ -1,0 +1,14 @@
+dn: uid=mail000,ou=mail,@LDAP_BASE_DN@
+cn: mail000
+gidnumber: 20000
+homedirectory: /home/mail/mail000
+mailacceptinggeneralid: test0@hosted-domain.com
+mailacceptinggeneralid: test1@hosted-domain.com
+maildrop: mail000@mail.example.com
+objectclass: account
+objectclass: posixAccount
+objectclass: postfixUser
+objectclass: top
+uid: mail000
+uidnumber: 20000
+userpassword: user

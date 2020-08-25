@@ -1,0 +1,7 @@
+dn: olcDatabase={1}@LDAP_BACKEND@,cn=config
+changetype: modify
+delete: olcAccess
+-
+add: olcAccess
+olcAccess: to attrs=userPassword by self =xw by anonymous auth by * none
+olcAccess: to dn.subtree="ou=mail,@LDAP_BASE_DN@" by dn.base="cn=mailAccountReader,ou=Manager,@LDAP_BASE_DN@" read by * none
