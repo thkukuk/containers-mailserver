@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ "${DEBUG}" = "yes" ] && set -x
+[ "${DEBUG}" -eq "1" ] && set -x
 
 export PATH=/usr/sbin:/sbin:${PATH}
 

@@ -31,7 +31,7 @@ mail._domainkey IN      TXT     ( "v=DKIM1; h=rsa-sha256; k=rsa; s=email; "
 ```
 
 ## Supported environment variables:
-- `DEBUG=yes|no`	enables "set -x" in the entrypoint script
+- `DEBUG=[0|1]`	enables "set -x" in the entrypoint script
 - `TZ`		timezone to use
 - `DKIM_AUTOGENERATE=1`	 Automatically generate
 - `DKIM_DOMAINS=`	 Whitespace-separated list of domains. The default DKIM selector is "mail", but can be changed to "<selector>" using the syntax `DKIM_DOMAINS="<domain1>=<selector1> <domain2> <domain3>=<selector2>"`.
