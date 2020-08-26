@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 26 15:57:24 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- config.sh: fix /etc/ssl/certs symlink
+
+-------------------------------------------------------------------
 Tue Aug 25 13:12:06 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Update docu
