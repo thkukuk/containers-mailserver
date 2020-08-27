@@ -1,7 +1,0 @@
-dn: olcDatabase={1}@LDAP_BACKEND@,cn=config
-changetype: modify
-delete: olcdbindex
--
-add: olcdbindex
-olcdbindex: mailacceptinggeneralid eq,sub
-olcdbindex: maildrop eq
