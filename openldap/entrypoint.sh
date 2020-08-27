@@ -366,8 +366,8 @@ init_slapd() {
     rm -f /entrypoint/ldif/security.ldif
     ldap_add_or_modify /entrypoint/ldif/memberOf.ldif
     ldap_add_or_modify /entrypoint/ldif/refint.ldif
-    ldap_add_or_modify /entrypoint/ldif/index.ldif
     ldap_add_or_modify /entrypoint/ldif/postfix.ldif
+    ldap_add_or_modify /entrypoint/ldif/index.ldif
 
     # process config files (*.ldif) in custom directory
     echo "Add image bootstrap ldif..."
