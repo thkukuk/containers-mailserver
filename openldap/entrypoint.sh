@@ -367,6 +367,7 @@ init_slapd() {
     ldap_add_or_modify /entrypoint/ldif/memberOf.ldif
     ldap_add_or_modify /entrypoint/ldif/refint.ldif
     ldap_add_or_modify /entrypoint/ldif/index.ldif
+    ldap_add_or_modify /entrypoint/ldif/postfix.ldif
 
     # process config files (*.ldif) in custom directory
     echo "Add image bootstrap ldif..."
@@ -414,7 +415,7 @@ file_env() {
     unset "$fileVar"
 }
 
-# if command starts with an option, prepend postfix
+# if command starts with an option, prepend slapd
 if [ "${1:0:1}" = '-' ]; then
         set -- /usr/sbin/slapd "$@"
 fi
