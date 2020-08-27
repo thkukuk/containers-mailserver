@@ -2,6 +2,7 @@
 Thu Aug 27 08:16:26 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Load postfix.ldif by default, delete duplicate file
+- Pre-process mailserver/*.ldif files
 
 -------------------------------------------------------------------
 Wed Aug 26 15:57:24 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>

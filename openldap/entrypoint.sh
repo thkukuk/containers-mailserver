@@ -227,13 +227,25 @@ init_slapd() {
 	fi
     }
 
+    function adjust_ldif_file() {
+        local LDIF_FILE
+
+        LDIF_FILE="$1"
+
+        sed -i "s|@LDAP_BASE_DN@|${LDAP_BASE_DN}|g" "${LDIF_FILE}"
+        sed -i "s|@LDAP_BACKEND@|${LDAP_BACKEND}|g" "${LDIF_FILE}"
+        sed -i "s|@LDAP_DOMAIN@|${LDAP_DOMAIN}|g" "${LDIF_FILE}"
+	if [ -n "${MAIIL_ACCOUNT_READER_PASSWORD}" ]; then
+	    sed -i "s|@MAIIL_ACCOUNT_READER_PASSWORD@|${MAIIL_ACCOUNT_READER_PASSWORD}" "${LDIF_FILE}"
+	fi
+    }
+
     function ldap_add_or_modify() {
 	local LDIF_FILE=$1
 
-	echo "Processing file ${LDIF_FILE}"
-	sed -i "s|@LDAP_BASE_DN@|${LDAP_BASE_DN}|g" "${LDIF_FILE}"
-	sed -i "s|@LDAP_BACKEND@|${LDAP_BACKEND}|g" "${LDIF_FILE}"
-	sed -i "s|@LDAP_DOMAIN@|${LDAP_DOMAIN}|g" "${LDIF_FILE}"
+        echo "Processing file ${LDIF_FILE}"
+
+        adjust_ldif_file "${LDIF_FILE}"
 
 	if grep -iq changetype "${LDIF_FILE}" ; then
             ldapmodify -Y EXTERNAL -Q -H ldapi:/// -D "cn=admin,${LDAP_BASE_DN}" -w "${LDAP_ADMIN_PASSWORD}" -f "${LDIF_FILE}"
@@ -304,6 +316,8 @@ init_slapd() {
 	exit 1
     fi
 
+    file_env 'MAIIL_ACCOUNT_READER_PASSWORD'
+
     get_ldap_base_dn
     init_slapd_d
     create_new_directory
@@ -372,8 +386,12 @@ init_slapd() {
     # process config files (*.ldif) in custom directory
     echo "Add image bootstrap ldif..."
     for f in $(find /entrypoint/ldif/custom -mindepth 1 -maxdepth 1 -type f -name \*.ldif  | sort); do
-	echo "Processing file ${f}"
         ldap_add_or_modify "$f"
+    done
+
+    for f in /entrypoint/ldif/mailserver/*.ldif ; do
+	echo "Adjusting $f"
+	adjust_ldif_file "$f"
     done
 
     # Check or create certificates
