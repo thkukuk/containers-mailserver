@@ -17,14 +17,14 @@ SLAPD_RUN_DIR=${SLAPD_RUN_DIR:-"/run/slapd"}
 SLAPD_SLP_REG=${SLAPD_SLP_REG:-"-o slp=off"}
 
 # Default values for new database
-LDAP_ORGANISATION=${LDAP_ORGANISATION:-"Example Inc."}
+LDAP_ORGANIZATION=${LDAP_ORGANIZATION:-"Example Inc."}
 LDAP_DOMAIN=${LDAP_DOMAIN:-"example.org"}
 LDAP_BASE_DN=${LDAP_BASE_DN:-""}
 
 # TLS
 LDAP_TLS=${LDAP_TLS:-"1"}
-LDAP_TLS_CA_CRT=${LDAP_TLS_CA_CRT:-"/etc/openldap/certs/ca.crt"}
-LDAP_TLS_CA_KEY=${LDAP_TLS_CA_KEA:-"/etc/openldap/certs/ca.key"}
+LDAP_TLS_CA_CRT=${LDAP_TLS_CA_CRT:-"/etc/openldap/certs/openldap-ca.crt"}
+LDAP_TLS_CA_KEY=${LDAP_TLS_CA_KEA:-"/etc/openldap/certs/openldap-ca.key"}
 LDAP_TLS_CRT=${LDAP_TLS_CRT:-"/etc/openldap/certs/tls.crt"}
 LDAP_TLS_KEY=${LDAP_TLS_KEY:-"/etc/openldap/certs/tls.key"}
 LDAP_TLS_DH_PARAM=${LDAP_TLS_DH_PARAM:-"/etc/openldap/certs/dhparam.pem"}
@@ -194,7 +194,7 @@ init_slapd() {
 		objectClass: top
 		objectClass: dcObject
 		objectClass: organization
-		o: ${LDAP_ORGANISATION}
+		o: ${LDAP_ORGANIZATION}
 		dc: $dc
 
 		dn: cn=admin,${LDAP_BASE_DN}
