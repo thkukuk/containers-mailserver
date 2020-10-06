@@ -118,8 +118,8 @@ Add --env LDAP_TLS=0 to the run command: `podman run -e LDAP_TLS=0 ...`
 
 ### Variables for TLS:
 - `LDAP_TLS=[1|0]`	Enable TLS. Defaults to `1` (true).
-- `LDAP_TLS_CA_CRT`	LDAP ssl CA certificate. Defaults to `/etc/openldap/certs/ca.crt`.
-- `LDAP_TLS_CA_KEY`	Private LDAP CA key. Defaults to `/etc/openldap/certs/ca.key`.
+- `LDAP_TLS_CA_CRT`	LDAP ssl CA certificate. Defaults to `/etc/openldap/certs/openldap-ca.crt`.
+- `LDAP_TLS_CA_KEY`	Private LDAP CA key. Defaults to `/etc/openldap/certs/openldap-ca.key`.
 - `LDAP_TLS_CRT`	LDAP ssl certificate. Defaults to `/etc/openldap/certs/tls.crt`.
 - `LDAP_TLS_KEY`	Private LDAP ssl key. Defaults to `/etc/openldap/certs/tls.key`.
 - `LDAP_TLS_DH_PARAM`	LDAP ssl certificate dh param file.
