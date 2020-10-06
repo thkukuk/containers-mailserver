@@ -235,8 +235,8 @@ init_slapd() {
         sed -i "s|@LDAP_BASE_DN@|${LDAP_BASE_DN}|g" "${LDIF_FILE}"
         sed -i "s|@LDAP_BACKEND@|${LDAP_BACKEND}|g" "${LDIF_FILE}"
         sed -i "s|@LDAP_DOMAIN@|${LDAP_DOMAIN}|g" "${LDIF_FILE}"
-	if [ -n "${MAIIL_ACCOUNT_READER_PASSWORD}" ]; then
-	    sed -i "s|@MAIIL_ACCOUNT_READER_PASSWORD@|${MAIIL_ACCOUNT_READER_PASSWORD}" "${LDIF_FILE}"
+	if [ -n "${MAIL_ACCOUNT_READER_PASSWORD}" ]; then
+	    sed -i "s|@MAIL_ACCOUNT_READER_PASSWORD@|${MAIL_ACCOUNT_READER_PASSWORD}" "${LDIF_FILE}"
 	fi
     }
 
@@ -316,7 +316,7 @@ init_slapd() {
 	exit 1
     fi
 
-    file_env 'MAIIL_ACCOUNT_READER_PASSWORD'
+    file_env 'MAIL_ACCOUNT_READER_PASSWORD'
 
     get_ldap_base_dn
     init_slapd_d

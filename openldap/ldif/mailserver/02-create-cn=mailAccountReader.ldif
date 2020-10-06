@@ -7,4 +7,4 @@ cn: mailAccountReader
 objectclass: organizationalRole
 objectclass: simpleSecurityObject
 objectclass: top
-userpassword: @MAIIL_ACCOUNT_READER_PASSWORD@
+userpassword: @MAIL_ACCOUNT_READER_PASSWORD@
