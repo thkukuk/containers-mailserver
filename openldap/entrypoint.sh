@@ -33,6 +33,9 @@ LDAP_TLS_ENFORCE=${LDAP_TLS_ENFORCE:-"0"}
 LDAP_TLS_CIPHER_SUITE=${LDAP_TLS_CIPHER_SUITE:-"HIGH:-VERS-TLS-ALL:+VERS-TLS1.2:+VERS-TLS1.3:!SSLv3:!SSLv2:!ADH"}
 LDAP_TLS_VERIFY_CLIENT=${LDAP_TLS_VERIFY_CLIENT:-try}
 
+# For mailserver setup
+SETUP_FOR_MAILSERVER=${SETUP_FOR_MAILSERVER:-0}
+
 
 setup_timezone() {
     if [ -n "$TZ" ]; then
@@ -316,8 +319,6 @@ init_slapd() {
 	exit 1
     fi
 
-    file_env 'MAIL_ACCOUNT_READER_PASSWORD'
-
     get_ldap_base_dn
     init_slapd_d
     create_new_directory
@@ -389,11 +390,19 @@ init_slapd() {
         ldap_add_or_modify "$f"
     done
 
-    for f in /entrypoint/ldif/mailserver/*.ldif ; do
-	echo "Adjusting $f"
-	adjust_ldif_file "$f"
-    done
+    if [ "${SETUP_FOR_MAILSERVER}" == "1" ]; then
+	echo "Setup for mailserver..."
+	file_env 'MAIL_ACCOUNT_READER_PASSWORD'
+	if [ -z "${MAIL_ACCOUNT_READER_PASSWORD}" ]; then
+	    echo "Password for mail account reader (MAIL_ACCOUNT_READER_PASSWORD) not set!" >&2
+	    exit 1
+	fi
 
+	for f in /entrypoint/ldif/mailserver/*.ldif ; do
+       	    echo "Adjusting $f"
+	    adjust_ldif_file "$f"
+    	done
+    fi
     # Check or create certificates
     setup_tls
 }
