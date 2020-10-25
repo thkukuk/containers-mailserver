@@ -399,6 +399,10 @@ init_slapd() {
 	fi
 
 	for f in /entrypoint/ldif/mailserver/*.ldif ; do
+	    ldap_add_or_modify "$f"
+    	done
+    else
+	for f in /entrypoint/ldif/mailserver/*.ldif ; do
        	    echo "Adjusting $f"
 	    adjust_ldif_file "$f"
     	done
