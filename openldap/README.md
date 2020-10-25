@@ -136,6 +136,7 @@ Add --env LDAP_TLS=0 to the run command: `podman run -e LDAP_TLS=0 ...`
 - `LDAP_GID`		   GID of ldap group. All LDAP related files will be changed to this GID
 - `LDAP_BACKEND`	   Database backend, defaults to `mdb`
 - `SLAPD_LOG_LEVEL`        Slapd debug devel, defaults to `0`
+- `SETUP_FOR_MAILSERVER`   The mail organization will be created (ldif/mailserver/), defaults to `0`
 
 ## Data persistence volumes
 - `/etc/openldap/certs`	   TLS certificates for slapd
