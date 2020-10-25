@@ -239,7 +239,7 @@ init_slapd() {
         sed -i "s|@LDAP_BACKEND@|${LDAP_BACKEND}|g" "${LDIF_FILE}"
         sed -i "s|@LDAP_DOMAIN@|${LDAP_DOMAIN}|g" "${LDIF_FILE}"
 	if [ -n "${MAIL_ACCOUNT_READER_PASSWORD}" ]; then
-	    sed -i "s|@MAIL_ACCOUNT_READER_PASSWORD@|${MAIL_ACCOUNT_READER_PASSWORD}" "${LDIF_FILE}"
+	    sed -i "s|@MAIL_ACCOUNT_READER_PASSWORD@|${MAIL_ACCOUNT_READER_PASSWORD}|g" "${LDIF_FILE}"
 	fi
     }
 
