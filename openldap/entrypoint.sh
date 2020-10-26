@@ -244,6 +244,7 @@ init_slapd() {
     }
 
     function ldap_add_or_modify() {
+	local failed
 	local LDIF_FILE=$1
 
         echo "Processing file ${LDIF_FILE}"
@@ -251,9 +252,17 @@ init_slapd() {
         adjust_ldif_file "${LDIF_FILE}"
 
 	if grep -iq changetype "${LDIF_FILE}" ; then
-            ldapmodify -Y EXTERNAL -Q -H ldapi:/// -D "cn=admin,${LDAP_BASE_DN}" -w "${LDAP_ADMIN_PASSWORD}" -f "${LDIF_FILE}"
+            ldapmodify -Y EXTERNAL -Q -H ldapi:/// -D "cn=admin,${LDAP_BASE_DN}" -w "${LDAP_ADMIN_PASSWORD}" -f "${LDIF_FILE}" || failed=1
+            if [ "$failed" ]; then
+		echo "ERROR: ldapmodify failed!"
+		exit 1
+	    fi
 	else
-            ldapadd -Y EXTERNAL -Q -H ldapi:/// -D "cn=admin,${LDAP_BASE_DN}" -w "$LDAP_ADMIN_PASSWORD" -f "${LDIF_FILE}"
+            ldapadd -Y EXTERNAL -Q -H ldapi:/// -D "cn=admin,${LDAP_BASE_DN}" -w "$LDAP_ADMIN_PASSWORD" -f "${LDIF_FILE}" || failed=1
+            if [ "$failed" ]; then
+		echo "ERROR: ldapadd failed!"
+		exit 1
+	    fi
 	fi
     }
 
@@ -390,7 +399,7 @@ init_slapd() {
         ldap_add_or_modify "$f"
     done
 
-    if [ "${SETUP_FOR_MAILSERVER}" == "1" ]; then
+    if [ "${SETUP_FOR_MAILSERVER}" = "1" ]; then
 	echo "Setup for mailserver..."
 	file_env 'MAIL_ACCOUNT_READER_PASSWORD'
 	if [ -z "${MAIL_ACCOUNT_READER_PASSWORD}" ]; then
@@ -413,7 +422,7 @@ init_slapd() {
 
 # ldap client config
 setup_ldap_conf() {
-    if [ "${LDAP_TLS}" == "1" ]; then
+    if [ "${LDAP_TLS}" = "1" ]; then
 	echo "Configure ldap client TLS configuration..."
 	echo "TLS_CACERT ${LDAP_TLS_CA_CRT}" >> /etc/openldap/ldap.conf
 	echo "TLS_REQCERT ${LDAP_TLS_VERIFY_CLIENT}" >> /etc/openldap/ldap.conf
