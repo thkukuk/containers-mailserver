@@ -58,6 +58,7 @@
     <package name="cyrus-sasl-plain"/>
     <package name="ca-certificates"/>
     <package name="ca-certificates-mozilla"/>
+    <package name="system-user-nobody"/>
     <package name="-busybox-findutils"/>
     <package name="-busybox-man"/>
     <package name="-busybox-sendmail"/>

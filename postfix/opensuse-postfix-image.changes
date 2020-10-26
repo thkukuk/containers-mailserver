@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct 26 14:41:58 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Add user nobody
+
+-------------------------------------------------------------------
 Thu Aug 27 15:03:12 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Fix /etc/ssl/certs symlink
