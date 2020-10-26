@@ -20,11 +20,16 @@ setup_timezone() {
 }
 
 set_config_value() {
+    local failed
     key=${1}
     value=${2}
 
     echo "Setting configuration option \"${key}\" with value \"${value}\""
-    postconf -e "${key} = ${value}"
+    postconf -e "${key} = ${value}" || failed=1
+    if [ "$failed" ]; then
+	echo "ERROR: postconf -e ${key} ${value} failed!"
+	exit 1
+    fi
 }
 
 # usage: file_env VAR [DEFAULT]
@@ -50,18 +55,25 @@ file_env() {
 }
 
 update_db() {
+    local failed
+
     while test "x$1" != "x" ; do
         pfmap=/etc/postfix/${1}
         test -e "${pfmap}" && \
             if test "${pfmap}" -nt "${pfmap}.db" -o ! -e "${pfmap}.db" ; then
 		echo "rebuilding ${pfmap}.db"
-		postmap "${pfmap}"
+		postmap "${pfmap}" || failed=1
+		if [ "$failed" ]; then
+		    echo "ERROR: postmap ${pfmap} failed!"
+		    exit 1
+		fi
             fi
         shift
     done
 }
 
 setup_aliases() {
+    local failed
 
     get_alias_maps() {
 	test -d /etc/aliases.d && test "$(echo /etc/aliases.d/*)" != "/etc/aliases.d/*" && \
@@ -80,7 +92,11 @@ setup_aliases() {
     for i in $(get_alias_maps); do
         ALLMAPS="${ALLMAPS}, hash:$i"
 	echo "Building $i.db"
-	postalias "${i}"
+	postalias "${i}" || failed=1
+	if [ "${failed}" ]; then
+	    echo "ERROR: postalias ${i} failed!"
+	    exit 1
+	fi
     done
     set_config_value "alias_maps" "${ALLMAPS}"
 }
