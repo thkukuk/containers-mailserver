@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
-Mon Oct 26 14:41:58 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+Tue Oct 27 13:16:38 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
-- Add user nobody
+- Add support for /etc/pki
 
 -------------------------------------------------------------------
 Thu Aug 27 15:03:12 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
