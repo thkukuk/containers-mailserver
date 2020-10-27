@@ -35,6 +35,7 @@ In all examples, `podman` can be replaced directly with `docker`.
 ## Data persistence volumes
 - `/var/spool/postfix`	Postfix mail queues. A data volume should be used in order to save the queue content if the container restarts.
 - `/var/spool/vmail`	Virtual user mboxes. This directory contains the mails stored in Maildir format of the virtual users of the virtual domains. Everything is owned by the `vmail` user.
+- `/etc/pki`		PKI directories for CA certificates
 
 ## Virtual domains and virtual users
 
