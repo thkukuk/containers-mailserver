@@ -329,6 +329,8 @@ fi
 
 init_trap
 setup_timezone
+# Update certificates if /etc/pki is mounted from the host
+update-ca-certificates
 # configure postfix even if postfix will not be started, to
 # allow to see the result with postconf for debugging/testing.
 configure_postfix
