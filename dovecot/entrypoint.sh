@@ -13,14 +13,14 @@ DOVECOT_BASE_DN=${DOVECOT_BASE_DN:-""}
 
 # TLS
 DOVECOT_TLS=${DOVECOT_TLS:-"1"}
-DOVECOT_TLS_CA_CRT=${DOVECOT_TLS_CA_CRT:-"/etc/dovecot/certs/ca.crt"}
-DOVECOT_TLS_CA_KEY=${DOVECOT_TLS_CA_KEY:-"/etc/dovecot/certs/ca.key"}
+DOVECOT_TLS_CA_CRT=${DOVECOT_TLS_CA_CRT:-"/etc/dovecot/certs/dovecot-ca.crt"}
+DOVECOT_TLS_CA_KEY=${DOVECOT_TLS_CA_KEY:-"/etc/dovecot/certs/dovecot-ca.key"}
 DOVECOT_TLS_CRT=${DOVECOT_TLS_CRT:-"/etc/dovecot/certs/tls.crt"}
 DOVECOT_TLS_KEY=${DOVECOT_TLS_KEY:-"/etc/dovecot/certs/tls.key"}
 DOVECOT_TLS_DH_PARAM=${DOVECOT_TLS_DH_PARAM:-"/etc/dovecot/certs/dhparam.pem"}
 
 DOVECOT_TLS_ENFORCE=${DOVECOT_TLS_ENFORCE:-"0"}
-DOVECOT_TLS_CIPHER_SUITE=${DOVECOT_TLS_CIPHER_SUITE:-"HIGH:-VERS-TLS-ALL:+VERS-TLS1.2:+VERS-TLS1.3:!SSLv3:!SSLv2:!ADH"}
+DOVECOT_TLS_CIPHER_SUITE=${DOVECOT_TLS_CIPHER_SUITE:-"ECDHE-RSA-CHACHA20-POLY1305:HIGH:-VERS-TLS-ALL:+VERS-TLS1.2:+VERS-TLS1.3:!SSLv3:!SSLv2:!ADH"}
 DOVECOT_TLS_VERIFY_CLIENT=${DOVECOT_TLS_VERIFY_CLIENT:-demand}
 
 VMAIL_UID="${VMAIL_UID:-5000}"
@@ -93,16 +93,40 @@ setup_default_config() {
     [ -z "$(ls -A /etc/dovecot)" ] || return
 
     # Only continue
-    cp -a /entrypoint/default-config/* /etc/dovecot/
+    cp -a /usr/share/dovecot/example-config/* /etc/dovecot/
 
     sed -i -e 's|#log_path =.*|log_path = /dev/stderr|g' /etc/dovecot/conf.d/10-logging.conf
 
     if [ "${DEBUG}" = "1" ]; then
 	# Enable some debug informations in conf.d/10-logging.conf
-	sed -i -e 's|#auth_verbose =.*|auth_verbose = yes|g' /etc/dovecot/conf.d/10-logging.conf
-	sed -i -e 's|#mail_debug =.*|mail_debug = yes|g' /etc/dovecot/conf.d/10-logging.conf
-	sed -i -e 's|#verbose_ssl =.*|verbose_ssl = yes|g' /etc/dovecot/conf.d/10-logging.conf
+	sed -i -e 's|^#auth_verbose =.*|auth_verbose = yes|g' /etc/dovecot/conf.d/10-logging.conf
+	sed -i -e 's|^#mail_debug =.*|mail_debug = yes|g' /etc/dovecot/conf.d/10-logging.conf
+	sed -i -e 's|^#verbose_ssl =.*|verbose_ssl = yes|g' /etc/dovecot/conf.d/10-logging.conf
     fi
+
+    # Where to find the mailfolders
+    sed -i -e 's|^#mail_location =.*|mail_location = maildir:/var/spool/vmail/%d/%n|g' /etc/dovecot/conf.d/10-mail.conf
+
+    # Enforce TLS
+    sed -i -e 's|^#ssl =.*|ssl = required|g' /etc/dovecot/conf.d/10-ssl.conf
+    sed -i -e "s|^ssl_cipher_list =.*|ssl_cipher_list = ${DOVECOT_TLS_CIPHER_SUITE}|" /etc/dovecot/conf.d/10-ssl.conf
+    sed -i -e 's|^ssl_prefer_server_ciphers =.*|ssl_prefer_server_ciphers = yes|g' /etc/dovecot/conf.d/10-ssl.conf
+
+    cat << 'EOT' >> /etc/dovecot/conf.d/10-master.conf
+service imap-login {
+    inet_listener imap {
+        port = 143
+        ssl = yes
+    }
+    inet_listener imaps {
+        port = 993
+        ssl = yes
+    }
+
+    service_count = 1
+    process_min_avail = 1
+}
+EOT
 }
 
 setup_ldap() {
@@ -116,8 +140,8 @@ setup_ldap() {
     file_env LDAP_DNPASS_READER
     sed -i "s|#dnpass =.*|dnpass = ${LDAP_DNPASS_READER}" /etc/dovecot/dovecot-ldap.conf.ext
     if [ "${LDAP_USE_TLS}" = "1" ]; then
-	sed -i
-
+	echo "XXX"
+    fi
 }
 
 # if command starts with an option, prepend dovecot
