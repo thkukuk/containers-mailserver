@@ -104,19 +104,18 @@ setup_default_config() {
 	sed -i -e 's|^#verbose_ssl =.*|verbose_ssl = yes|g' /etc/dovecot/conf.d/10-logging.conf
     fi
 
-    # Where to find the mailfolders
+    # Where to find the mailfolders and which uid/gid to use
     sed -i -e 's|^#mail_location =.*|mail_location = maildir:/var/spool/vmail/%d/%n|g' /etc/dovecot/conf.d/10-mail.conf
+    sed -i -e "s|^#mail_uid =.*|mail_uid = vmail|g" /etc/dovecot/conf.d/10-mail.conf
+    sed -i -e "s|^#mail_gid =.*|mail_gid = vmail|g" /etc/dovecot/conf.d/10-mail.conf
 
-    # Enforce TLS
-    sed -i -e 's|^#ssl =.*|ssl = required|g' /etc/dovecot/conf.d/10-ssl.conf
-    sed -i -e "s|^ssl_cipher_list =.*|ssl_cipher_list = ${DOVECOT_TLS_CIPHER_SUITE}|" /etc/dovecot/conf.d/10-ssl.conf
-    sed -i -e 's|^ssl_prefer_server_ciphers =.*|ssl_prefer_server_ciphers = yes|g' /etc/dovecot/conf.d/10-ssl.conf
+    echo -e "#default_process_limit = 100\n#default_client_limit = 1000\n" > /etc/dovecot/conf.d/10-master.conf
 
     cat << 'EOT' >> /etc/dovecot/conf.d/10-master.conf
 service imap-login {
     inet_listener imap {
         port = 143
-        ssl = yes
+        #ssl = yes
     }
     inet_listener imaps {
         port = 993
@@ -130,7 +129,7 @@ EOT
 }
 
 setup_ldap() {
-    [ ${USE_LDAP} = "1" ] || return
+    [ "${USE_LDAP}" = "1" ] || return
 
     # Disable enabled auth includes and add ldap
     sed -i -e 's|^!include\(.*\)|#!include\1|g' /etc/dovecot/conf.d/10-auth.conf
@@ -143,6 +142,36 @@ setup_ldap() {
 	echo "XXX"
     fi
 }
+
+function setup_tls() {
+
+    if [ "${DOVECOT_TLS}" != "1" ]; then
+        return
+    fi
+
+    echo "Add TLS config..."
+
+    mkdir -p /etc/dovecot/certs
+    /common-scripts/ssl-helper "$DOVECOT_TLS_CRT" "$DOVECOT_TLS_KEY" "$DOVECOT_TLS_CA_CRT" "$DOVECOT_TLS_CA_KEY"
+
+    # create DHParamFile if not found
+    if [ ! -f "${DOVECOT_TLS_DH_PARAM}" ]; then
+        openssl genpkey -genparam -algorithm DH \
+                -out "${DOVECOT_TLS_DH_PARAM}" \
+                -pkeyopt dh_paramgen_prime_len:2048
+        chmod 600 "${DOVECOT_TLS_DH_PARAM}"
+    fi
+
+    sed -i -e "s|^ssl_cipher_list =.*|ssl_cipher_list = ${DOVECOT_TLS_CIPHER_SUITE}|" /etc/dovecot/conf.d/10-ssl.conf
+    sed -i -e 's|^ssl_prefer_server_ciphers =.*|ssl_prefer_server_ciphers = yes|g' /etc/dovecot/conf.d/10-ssl.conf
+
+    # Enforce TLS
+    if [ "${DOVECOT_TLS_ENFORCE}" = "1" ]; then
+        echo "Enforce TLS..."
+	sed -i -e 's|^#ssl =.*|ssl = required|g' /etc/dovecot/conf.d/10-ssl.conf
+    fi
+}
+
 
 # if command starts with an option, prepend dovecot
 if [ "${1:0:1}" = '-' ]; then
