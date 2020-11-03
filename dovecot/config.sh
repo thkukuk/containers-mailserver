@@ -10,6 +10,5 @@ test -f /.profile && . /.profile
 #--------------------------------------
 echo "Configure image: [$kiwi_iname]..."
 
-# Move config away as default to fill volumes
-mkdir -p /entrypoint/default-config
-mv /etc/dovecot/* /entrypoint/default-config/
+# remove default configuration files
+rm -rf /etc/dovecot/*
