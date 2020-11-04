@@ -275,7 +275,7 @@ init_slapd() {
 	echo "Add TLS config..."
 
 	mkdir -p /etc/openldap/certs
-	/entrypoint/ssl-helper "$LDAP_TLS_CRT" "$LDAP_TLS_KEY" "$LDAP_TLS_CA_CRT" "$LDAP_TLS_CA_KEY"
+	/common-scripts/ssl-helper "$LDAP_TLS_CRT" "$LDAP_TLS_KEY" "$LDAP_TLS_CA_CRT" "$LDAP_TLS_CA_KEY"
 	# make sure slapd is allowed to read it the files
 	chown ldap:ldap "$LDAP_TLS_CRT" "$LDAP_TLS_KEY"
 
