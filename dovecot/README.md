@@ -64,7 +64,9 @@ podman run -v /srv/dovecot/certs:/etc/certs:Z \
        -d registry.opensuse.org/opensuse/dovecot:latest
 ```
 
-Add --env DOVECOT_TLS=0 to the run command: `podman run -e DOVECOT_TLS=0 ...`
+### Disable TLS
+
+Add `--env DOVECOT_TLS=0` to the run command: `podman run -e DOVECOT_TLS=0 ...`
 
 ## Supported environment variables:
 ### Generic variables:
