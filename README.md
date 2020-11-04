@@ -18,6 +18,12 @@ This image allows you to run POSTFIX as relay or for virtual users, where the us
 
 Instructions: [README](postfix/README.md)
 
+## dovecot
+
+This image runs Dovecot as IMAP and POP3 email server. The user accounts are fetched from an LDAP server, the Mails are stored in Maildir format in a persistent volume filled by e.g. postfix.
+
+Instructions: [README](dovecot/README.md)
+
 ## DKIM
 
 This images provides the `DomainKeys Identified Mail (DKIM)` service
