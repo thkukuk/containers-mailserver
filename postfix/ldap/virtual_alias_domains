@@ -5,8 +5,8 @@ version = 3
 tls_require_cert = yes
 
 bind = yes
-bind_dn = cn=mailAccountReader,ou=Manager,@LDAP_BASE_DN@
-bind_pw = @LDAP_MAIL_READER_PASSWORD@
+bind_dn = @LDAP_BIND_DN@
+bind_pw = @LDAP_BIND_PASSWORD@
 
 search_base = ou=mail,@LDAP_BASE_DN@
 scope = sub

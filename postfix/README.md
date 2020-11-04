@@ -28,7 +28,8 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `USE_LDAP=[0|1]`	Use LDAP for virtual mail box user accounts.
 - `LDAP_BASE_DN`	LDAP base DN, defaults to `dc=example,dc=org`.
 - `LDAP_SERVER_URL`	LDAP Server URL, defaults to `ldap://localhost`.
-- `LDAP_MAIL_READER_PASSWORD`	Password for the cn=mailAccountReader,ou=Manager,dc=example,dc=org account.
+- `LDAP_BIND_DN`        DN to bind, defaults to `cn=mailAccountReader,ou=Manager,dc=example,dc=org`
+- `LDAP_BIND_PASSWORD`	The password for the distinguished name to bind (`LDAP_BIND_DN`)
 - `LDAP_USE_TLS=[1|0]`	Use TLS for LDAP queries, by default enabled.
 - `LDAP_TLS_CA_CRT`	LDAP SSL CA certificate.
 

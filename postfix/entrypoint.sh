@@ -176,9 +176,10 @@ setup_vhosts() {
 	LDAP_BASE_DN=${LDAP_BASE_DN:-"dc=example,dc=org"}
 	LDAP_SERVER_URL=${LDAP_SERVER_URL:-"ldap://localhost"}
         LDAP_USE_TLS=${LDAP_USE_TLS:-"1"}
-	file_env LDAP_MAIL_READER_PASSWORD
-        if [ -z "${LDAP_MAIL_READER_PASSWORD}" ]; then
-            echo "LDAP_MAIL_READER_PASSWORD is not set"
+        LDAP_BIND_DN=${LDAP_BIND_DN:-"cn=mailAccountReader,ou=Manager,dc=example,dc=org"}
+	file_env LDAP_BIND_PASSWORD
+        if [ -z "${LDAP_BIND_PASSWORD}" ]; then
+            echo "LDAP_BIND_PASSWORD is not set"
             exit 1
         fi
 
@@ -187,7 +188,8 @@ setup_vhosts() {
 	for map in smtpd_sender_login_maps virtual_alias_domains virtual_alias_maps virtual_gid_maps virtual_mailbox_maps virtual_uid_maps ; do
 	    sed -e "s|@LDAP_BASE_DN@|${LDAP_BASE_DN}|g" \
 		-e "s|@LDAP_SERVER_URL@|${LDAP_SERVER_URL}|g" \
-		-e "s|@LDAP_MAIL_READER_PASSWORD@|${LDAP_MAIL_READER_PASSWORD}|g" \
+		-e "s|@LDAP_BIND_DN@|${LDAP_BIND_DN}|g" \
+		-e "s|@LDAP_BIND_PASSWORD@|${LDAP_BIND_PASSWORD}|g" \
 		"/entrypoint/ldap/${map}" > "/etc/postfix/ldap/${map}"
              if [ "${LDAP_USE_TLS}" = "1" ]; then
                  sed -i -e 's|^start_tls.*|start_tls = yes|g' "/etc/postfix/ldap/${map}"
