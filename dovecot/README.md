@@ -5,7 +5,7 @@ choice for both small and large installations. It's fast, simple to set up,
 requires no special administration and it uses very little memory.
 
 - [Guide](#guide)
-  - [Run a new dovecot instance](#run-a-new-dovecot-insance)
+  - [Run a new dovecot instance](#run-a-new-dovecot-instance)
   - [Data persistence](#data-persistence)
 - [TLS](#tls)
   - [Auto-generated certificate](#auto-generated-certificate)
@@ -35,15 +35,13 @@ podman run -d --rm --name dovecot -p 110:110 -p 143:143 -p 993:993 -p 995:995 -e
 
 ### Data persistence
 
-There are some directories to store persistence data.
-
-- `/var/spool/vmail` for the stored emails
-- `/etc/certs` to store the certificates for TLS connections
-- `/etc/dovecot` optional for user supplied configuration files
+There are some directories to store persistence data like `/var/spool/vmail` for
+the emails and `/etc/certs` for the certificates.
 
 If the UID and GID of the vmail user, which owns the `/var/spool/vmail`
-hierachy, needs to match in the container and in the host, the `VMAIL_UID` and
-`VMAIL_GID` environment variables needs to be set explicitly.
+hierachy, needs to match in the container and in the host, the `VMAIL_UID`
+environment variable needs to be set explicitly.
+This variable needs to match the `postfix` container `VMAIL_UID` variable.
 
 ## TLS
 ### Auto-generated certificate
