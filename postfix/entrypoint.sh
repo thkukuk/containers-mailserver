@@ -176,7 +176,7 @@ setup_vhosts() {
 	LDAP_BASE_DN=${LDAP_BASE_DN:-"dc=example,dc=org"}
 	LDAP_SERVER_URL=${LDAP_SERVER_URL:-"ldap://localhost"}
         LDAP_USE_TLS=${LDAP_USE_TLS:-"1"}
-        LDAP_BIND_DN=${LDAP_BIND_DN:-"cn=mailAccountReader,ou=Manager,dc=example,dc=org"}
+        LDAP_BIND_DN=${LDAP_BIND_DN:-"cn=mailAccountReader,ou=Manager,${LDAP_BASE_DN}"}
 	file_env LDAP_BIND_PASSWORD
         if [ -z "${LDAP_BIND_PASSWORD}" ]; then
             echo "LDAP_BIND_PASSWORD is not set"
