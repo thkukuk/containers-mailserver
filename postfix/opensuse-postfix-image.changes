@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov  4 14:53:10 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Only use username in vmail path
+
+-------------------------------------------------------------------
 Wed Nov  4 10:36:08 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Unify and fix ldap bind_dn/bind_pw handling
