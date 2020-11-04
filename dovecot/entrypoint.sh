@@ -1,37 +1,38 @@
 #!/bin/bash
 
+set -e
+
 [ "${DEBUG}" = "1" ] && set -x
 
 export PATH=/usr/sbin:/sbin:${PATH}
 
 DOVECOT_RUN_DIR=${DOVECOT_RUN_DIR:-"/run/dovecot"}
+DOVECOT_CERTS_DIR=${DOVECOT_CERTS_DIR:-"/etc/certs"}
 
-# Default values for new database
-DOVECOT_ORGANIZATION=${DOVECOT_ORGANIZATION:-"Example Inc."}
-DOVECOT_DOMAIN=${DOVECOT_DOMAIN:-"example.org"}
-DOVECOT_BASE_DN=${DOVECOT_BASE_DN:-""}
+# Generic values
+VMAIL_UID=${VMAIL_UID:-"5000"}
+ENABLE_IMAP=${ENABLE_IMAP:-"1"}
+ENABLE_POP3=${ENABLE_POP3:-"0"}
 
 # TLS
 DOVECOT_TLS=${DOVECOT_TLS:-"1"}
-DOVECOT_TLS_CA_CRT=${DOVECOT_TLS_CA_CRT:-"/etc/dovecot/certs/dovecot-ca.crt"}
-DOVECOT_TLS_CA_KEY=${DOVECOT_TLS_CA_KEY:-"/etc/dovecot/certs/dovecot-ca.key"}
-DOVECOT_TLS_CRT=${DOVECOT_TLS_CRT:-"/etc/dovecot/certs/tls.crt"}
-DOVECOT_TLS_KEY=${DOVECOT_TLS_KEY:-"/etc/dovecot/certs/tls.key"}
-DOVECOT_TLS_DH_PARAM=${DOVECOT_TLS_DH_PARAM:-"/etc/dovecot/certs/dhparam.pem"}
+DOVECOT_TLS_CA_CRT=${DOVECOT_TLS_CA_CRT:-"${DOVECOT_CERTS_DIR}/dovecot-ca.crt"}
+DOVECOT_TLS_CA_KEY=${DOVECOT_TLS_CA_KEY:-"${DOVECOT_CERTS_DIR}/dovecot-ca.key"}
+DOVECOT_TLS_CRT=${DOVECOT_TLS_CRT:-"${DOVECOT_CERTS_DIR}/dovecot-tls.crt"}
+DOVECOT_TLS_KEY=${DOVECOT_TLS_KEY:-"${DOVECOT_CERTS_DIR}/dovecot-tls.key"}
+DOVECOT_TLS_DH_PARAM=${DOVECOT_TLS_DH_PARAM:-"${DOVECOT_CERTS_DIR}/dovecot-dhparam.pem"}
 
-DOVECOT_TLS_ENFORCE=${DOVECOT_TLS_ENFORCE:-"0"}
-DOVECOT_TLS_CIPHER_SUITE=${DOVECOT_TLS_CIPHER_SUITE:-"ECDHE-RSA-CHACHA20-POLY1305:HIGH:-VERS-TLS-ALL:+VERS-TLS1.2:+VERS-TLS1.3:!SSLv3:!SSLv2:!ADH"}
-DOVECOT_TLS_VERIFY_CLIENT=${DOVECOT_TLS_VERIFY_CLIENT:-demand}
-
-VMAIL_UID="${VMAIL_UID:-5000}"
+DOVECOT_TLS_ENFORCE=${DOVECOT_TLS_ENFORCE:-"1"}
+DOVECOT_TLS_CIPHER_SUITE=${DOVECOT_TLS_CIPHER_SUITE:-"HIGH:-VERS-TLS-ALL:+VERS-TLS1.2:+VERS-TLS1.3:!SSLv3:!SSLv2:!ADH"}
 
 # LDAP
 USE_LDAP=${USE_LDAP:-"0"}
-LDAP_SERVER_URL=${LDAP_SERVER_URL:-"ldap://localhost"}
-LDAP_DN_READER=${LDAP_DN_READER:-"cn=mailAccountReader,ou=Manager,dc=example,dc=org"}
-LDAP_DNPASS_READER_FILE=${LDAP_DNPASS_READER_FILE:-"/etc/dovecot-secrets/LDAP_DNPASS_READER_FILE"}
+LDAP_HOSTS=${LDAP_HOSTS:-"localhost"}
+LDAP_BASE_DN=${LDAP_BASE_DN:-"ou=mail,dc=example,dc=org"}
+LDAP_BIND_DN=${LDAP_BIND_DN:-"cn=mailAccountReader,ou=Manager,dc=example,dc=org"}
+LDAP_BIND_PASSWORD_FILE=${LDAP_BIND_PASSWORD_FILE:-"/etc/dovecot-secrets/LDAP_BIND_PASSWORD"}
 LDAP_USE_TLS=${LDAP_USE_TLS:-"1"}
-LDAP_TLS_CA_CRT=${LDAP_TLS_CA_CRT:-"/etc/openldap/certs/openldap-ca.crt"}
+LDAP_TLS_CA_CRT=${LDAP_TLS_CA_CRT:-""}
 
 setup_timezone() {
     if [ -n "$TZ" ]; then
@@ -95,27 +96,30 @@ setup_default_config() {
     # Only continue
     cp -a /usr/share/dovecot/example-config/* /etc/dovecot/
 
-    sed -i -e 's|#log_path =.*|log_path = /dev/stderr|g' /etc/dovecot/conf.d/10-logging.conf
+    sed -i -e 's|^#log_path =.*|log_path = /dev/stderr|g' /etc/dovecot/conf.d/10-logging.conf
+    sed -i -e 's|^#auth_verbose =.*|auth_verbose = yes|g' /etc/dovecot/conf.d/10-logging.conf
 
     if [ "${DEBUG}" = "1" ]; then
 	# Enable some debug informations in conf.d/10-logging.conf
-	sed -i -e 's|^#auth_verbose =.*|auth_verbose = yes|g' /etc/dovecot/conf.d/10-logging.conf
+	sed -i -e 's|^#auth_debug =.*|auth_debug = yes|g' /etc/dovecot/conf.d/10-logging.conf
 	sed -i -e 's|^#mail_debug =.*|mail_debug = yes|g' /etc/dovecot/conf.d/10-logging.conf
 	sed -i -e 's|^#verbose_ssl =.*|verbose_ssl = yes|g' /etc/dovecot/conf.d/10-logging.conf
     fi
 
     # Where to find the mailfolders and which uid/gid to use
-    sed -i -e 's|^#mail_location =.*|mail_location = maildir:/var/spool/vmail/%d/%n|g' /etc/dovecot/conf.d/10-mail.conf
+    sed -i -e 's|^#mail_location =.*|mail_location = maildir:/var/spool/vmail/%u|g' /etc/dovecot/conf.d/10-mail.conf
     sed -i -e "s|^#mail_uid =.*|mail_uid = vmail|g" /etc/dovecot/conf.d/10-mail.conf
     sed -i -e "s|^#mail_gid =.*|mail_gid = vmail|g" /etc/dovecot/conf.d/10-mail.conf
 
     echo -e "#default_process_limit = 100\n#default_client_limit = 1000\n" > /etc/dovecot/conf.d/10-master.conf
 
-    cat << 'EOT' >> /etc/dovecot/conf.d/10-master.conf
+    local PROTOCOLS=""
+    if [ "${ENABLE_IMAP}" = "1" ]; then
+	PROTOCOLS="imap ${PROTOCOLS}"
+	cat << 'EOT' >> /etc/dovecot/conf.d/10-master.conf
 service imap-login {
     inet_listener imap {
         port = 143
-        #ssl = yes
     }
     inet_listener imaps {
         port = 993
@@ -125,33 +129,64 @@ service imap-login {
     service_count = 1
     process_min_avail = 1
 }
+
 EOT
+    fi
+
+    if [ "${ENABLE_POP3}" = "1" ]; then
+	PROTOCOLS="pop3 ${PROTOCOLS}"
+	cat << 'EOT' >> /etc/dovecot/conf.d/10-master.conf
+service pop3-login {
+  inet_listener pop3 {
+    port = 110
+  }
+  inet_listener pop3s {
+    port = 995
+    ssl = yes
+  }
+}
+
+EOT
+    fi
+
+    sed -i -e "s|^#protocols =.*|protocols = ${PROTOCOLS}|g" /etc/dovecot/dovecot.conf
 }
 
 setup_ldap() {
     [ "${USE_LDAP}" = "1" ] || return
 
+    echo "Configure LDAP..."
+
     # Disable enabled auth includes and add ldap
     sed -i -e 's|^!include\(.*\)|#!include\1|g' /etc/dovecot/conf.d/10-auth.conf
     echo "!include auth-ldap.conf.ext" >> /etc/dovecot/conf.d/10-auth.conf
 
-    sed -i "s|#dn =.*|dn = ${LDAP_DN_READER}" /etc/dovecot/dovecot-ldap.conf.ext
-    file_env LDAP_DNPASS_READER
-    sed -i "s|#dnpass =.*|dnpass = ${LDAP_DNPASS_READER}" /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e "s|^#hosts =.*|hosts = ${LDAP_HOSTS}|g" /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e "s|^base =.*|base = ${LDAP_BASE_DN}|g" /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e 's|^#ldap_version =.*|ldap_version = 3|g' /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e "s|^#dn =.*|dn = ${LDAP_BIND_DN}|g" /etc/dovecot/dovecot-ldap.conf.ext
+    file_env LDAP_BIND_PASSWORD
+    sed -i -e "s|^#dnpass =.*|dnpass = ${LDAP_BIND_PASSWORD}|g" /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e 's|^#auth_bind =.*|auth_bind = yes|g' /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e "s|^#auth_bind_userdn =.*|auth_bind_userdn = uid=%u,${LDAP_BASE_DN}|g" /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e 's|^#scope =.*|scope = subtree|g' /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e 's|^#user_attrs =.*|user_attrs = homeDirectory=home,uidNumber=uid,gidNumber=gid|g' /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e 's|^#user_filter =.*|user_filter = (&(objectClass=posixAccount)(uid=%u))|g' /etc/dovecot/dovecot-ldap.conf.ext
     if [ "${LDAP_USE_TLS}" = "1" ]; then
-	echo "XXX"
+	sed -i -e 's|^#tls =.*|tls = yes|g' /etc/dovecot/dovecot-ldap.conf.ext
+	if [ -n "${LDAP_TLS_CA_CRT}" ]; then
+	    sed -i -e "s|^#tls_ca_cert_file =.*|tls_ca_cert_file = ${LDAP_TLS_CA_CRT}|g" /etc/dovecot/dovecot-ldap.conf.ext
+	fi
     fi
+# XXX tls_require_cert = hard
 }
 
 function setup_tls() {
-
-    if [ "${DOVECOT_TLS}" != "1" ]; then
-        return
-    fi
+    [ "${DOVECOT_TLS}" = "1" ] || return
 
     echo "Add TLS config..."
 
-    mkdir -p /etc/dovecot/certs
+    mkdir -p "${DOVECOT_CERTS_DIR}"
     /common-scripts/ssl-helper "$DOVECOT_TLS_CRT" "$DOVECOT_TLS_KEY" "$DOVECOT_TLS_CA_CRT" "$DOVECOT_TLS_CA_KEY"
 
     # create DHParamFile if not found
@@ -162,8 +197,11 @@ function setup_tls() {
         chmod 600 "${DOVECOT_TLS_DH_PARAM}"
     fi
 
-    sed -i -e "s|^ssl_cipher_list =.*|ssl_cipher_list = ${DOVECOT_TLS_CIPHER_SUITE}|" /etc/dovecot/conf.d/10-ssl.conf
+    sed -i -e "s|^ssl_cipher_list =.*|ssl_cipher_list = ${DOVECOT_TLS_CIPHER_SUITE}|g" /etc/dovecot/conf.d/10-ssl.conf
     sed -i -e 's|^ssl_prefer_server_ciphers =.*|ssl_prefer_server_ciphers = yes|g' /etc/dovecot/conf.d/10-ssl.conf
+    sed -i -e "s|^#ssl_cert =.*|ssl_cert = <${DOVECOT_TLS_CRT}|g" /etc/dovecot/conf.d/10-ssl.conf
+    sed -i -e "s|^#ssl_key =.*|ssl_key = <${DOVECOT_TLS_KEY}|g" /etc/dovecot/conf.d/10-ssl.conf
+    sed -i -e "s|^#ssl_dh =.*|ssl_dh = <${DOVECOT_TLS_DH_PARAM}|g" /etc/dovecot/conf.d/10-ssl.conf
 
     # Enforce TLS
     if [ "${DOVECOT_TLS_ENFORCE}" = "1" ]; then
@@ -172,6 +210,9 @@ function setup_tls() {
     fi
 }
 
+###
+### Main function
+###
 
 # if command starts with an option, prepend dovecot
 if [ "${1:0:1}" = '-' ]; then
@@ -182,6 +223,8 @@ fi
 setup_timezone
 setup_vmail_user
 setup_default_config
+setup_ldap
+setup_tls
 echo "Updating certificate store..."
 update-ca-certificates
 
