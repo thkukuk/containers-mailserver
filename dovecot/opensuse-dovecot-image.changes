@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Nov  5 14:57:39 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Remove busybox-adduser (dovecot requires shadow)
+
+-------------------------------------------------------------------
 Tue Nov  3 07:41:11 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Add tar archive with common scripts
