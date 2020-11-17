@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 17 15:51:25 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Add LMTP support
+- Make usage of vmail user configureable
+
+-------------------------------------------------------------------
 Thu Nov  5 14:57:39 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Remove busybox-adduser (dovecot requires shadow)

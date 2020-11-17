@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 [ "${DEBUG}" = "1" ] && set -x
 
 export PATH=/usr/sbin:/sbin:${PATH}
@@ -10,9 +8,11 @@ DOVECOT_RUN_DIR=${DOVECOT_RUN_DIR:-"/run/dovecot"}
 DOVECOT_CERTS_DIR=${DOVECOT_CERTS_DIR:-"/etc/certs"}
 
 # Generic values
+USE_VMAIL_USER=${USE_VMAIL_USER:-"1"}
 VMAIL_UID=${VMAIL_UID:-"5000"}
 ENABLE_IMAP=${ENABLE_IMAP:-"1"}
 ENABLE_POP3=${ENABLE_POP3:-"0"}
+ENABLE_LMTP=${ENABLE_LMTP:-"0"}
 
 # TLS
 DOVECOT_TLS=${DOVECOT_TLS:-"1"}
@@ -69,21 +69,38 @@ file_env() {
 }
 
 setup_vmail_user() {
-    # Create the vmail user with the requested UID
-    if [ -x /usr/sbin/adduser ]; then
-        adduser -D -h /var/spool/vmail -g "Virtual Mail User" -u "${VMAIL_UID}" -s /sbin/nologin vmail
-    else
-        useradd -d /var/spool/vmail -U -c "Virtual Mail User" -u "${VMAIL_UID}" vmail
-    fi
-    if [ $? -ne 0 ]; then
-        echo "ERROR: creating of vmail user failed! Aborting."
-        exit 1
-    fi
 
-    if [ ! -d /var/spool/vmail ]; then
-        mkdir -p /var/spool/vmail
-        chown vmail:vmail /var/spool/vmail
-        chmod 775 /var/spool/vmail
+    # setup vmail user. If not needed, setup /var/spool/vmail
+    # for local delivery.
+
+    if [ "${USE_VMAIL_USER}" = "1" ]; then
+
+	# Create the vmail user with the requested UID
+	if [ -x /usr/sbin/adduser ]; then
+            adduser -D -h /var/spool/vmail -g "Virtual Mail User" -u "${VMAIL_UID}" -s /sbin/nologin vmail
+	else
+            useradd -d /var/spool/vmail -U -c "Virtual Mail User" -u "${VMAIL_UID}" vmail
+	fi
+	if [ $? -ne 0 ]; then
+            echo "ERROR: creating of vmail user failed! Aborting."
+            exit 1
+	fi
+
+	if [ ! -d /var/spool/vmail ]; then
+            mkdir -p /var/spool/vmail
+	fi
+	# Fix permissions in every case.
+	chown vmail:vmail /var/spool/vmail
+	chmod 775 /var/spool/vmail
+
+	sed -i -e "s|^#mail_uid =.*|mail_uid = vmail|g" /etc/dovecot/conf.d/10-mail.conf
+	sed -i -e "s|^#mail_gid =.*|mail_gid = vmail|g" /etc/dovecot/conf.d/10-mail.conf
+    else
+	if [ ! -d /var/spool/vmail ]; then
+            mkdir -p /var/spool/vmail
+	fi
+	# Fix permissions in every case.
+	chmod 1777 /var/spool/vmail
     fi
 }
 
@@ -107,9 +124,7 @@ setup_default_config() {
     fi
 
     # Where to find the mailfolders and which uid/gid to use
-    sed -i -e 's|^#mail_location =.*|mail_location = maildir:/var/spool/vmail/%u|g' /etc/dovecot/conf.d/10-mail.conf
-    sed -i -e "s|^#mail_uid =.*|mail_uid = vmail|g" /etc/dovecot/conf.d/10-mail.conf
-    sed -i -e "s|^#mail_gid =.*|mail_gid = vmail|g" /etc/dovecot/conf.d/10-mail.conf
+    sed -i -e 's|^#mail_location =.*|mail_location = maildir:/var/spool/vmail/%n|g' /etc/dovecot/conf.d/10-mail.conf
 
     echo -e "#default_process_limit = 100\n#default_client_limit = 1000\n" > /etc/dovecot/conf.d/10-master.conf
 
@@ -149,6 +164,20 @@ service pop3-login {
 EOT
     fi
 
+    if [ "${ENABLE_LMTP}" = "1" ]; then
+	PROTOCOLS="lmtp ${PROTOCOLS}"
+	echo "service lmtp {" >> /etc/dovecot/conf.d/10-master.conf
+	[ "${USE_VMAIL_USER}" = "1" ]  && echo "  user = vmail" >> /etc/dovecot/conf.d/10-master.conf
+	cat << 'EOT' >> /etc/dovecot/conf.d/10-master.conf
+  inet_listener lmtp {
+    # address = 192.168.0.24 127.0.0.1 ::1
+    port = 24
+  }
+}
+EOT
+    fi
+
+
     sed -i -e "s|^#protocols =.*|protocols = ${PROTOCOLS}|g" /etc/dovecot/dovecot.conf
 }
 
@@ -171,7 +200,7 @@ setup_ldap() {
     sed -i -e "s|^#auth_bind_userdn =.*|auth_bind_userdn = uid=%u,${LDAP_BASE_DN}|g" /etc/dovecot/dovecot-ldap.conf.ext
     sed -i -e 's|^#scope =.*|scope = subtree|g' /etc/dovecot/dovecot-ldap.conf.ext
     sed -i -e 's|^#user_attrs =.*|user_attrs = homeDirectory=home,uidNumber=uid,gidNumber=gid|g' /etc/dovecot/dovecot-ldap.conf.ext
-    sed -i -e 's|^#user_filter =.*|user_filter = (&(objectClass=posixAccount)(uid=%u))|g' /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e 's/^#user_filter =.*/user_filter = (\&(objectClass=posixAccount)(|(uid=%u)(maildrop=%u)))/g' /etc/dovecot/dovecot-ldap.conf.ext
     if [ "${LDAP_USE_TLS}" = "1" ]; then
 	sed -i -e 's|^#tls =.*|tls = yes|g' /etc/dovecot/dovecot-ldap.conf.ext
 	if [ -n "${LDAP_TLS_CA_CRT}" ]; then
@@ -221,8 +250,8 @@ fi
 
 # Generic setup
 setup_timezone
-setup_vmail_user
 setup_default_config
+setup_vmail_user
 setup_ldap
 setup_tls
 echo "Updating certificate store..."
