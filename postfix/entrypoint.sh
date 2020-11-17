@@ -154,24 +154,6 @@ setup_relayhost() {
 }
 
 setup_vhosts() {
-    # Create the vmail user with the requested UID, else 5000
-    VMAIL_UID="${VMAIL_UID:-5000}"
-    if [ -x /usr/sbin/adduser ]; then
-	adduser -D -h /var/spool/vmail -g "Virtual Mail User" -u "${VMAIL_UID}" -s /sbin/nologin vmail
-    else
-        useradd -d /var/spool/vmail -U -c "Virtual Mail User" -u "${VMAIL_UID}" vmail
-    fi
-    if [ $? -ne 0 ]; then
-        echo "ERROR: creating of vmail user failed! Aborting."
-        exit 1
-    fi
-
-    if [ ! -d /var/spool/vmail ]; then
-        mkdir -p /var/spool/vmail
-        chown vmail:vmail /var/spool/vmail
-        chmod 775 /var/spool/vmail
-    fi
-
     if [ "${USE_LDAP}" -eq "1" ]; then
 	LDAP_BASE_DN=${LDAP_BASE_DN:-"dc=example,dc=org"}
 	LDAP_SERVER_URL=${LDAP_SERVER_URL:-"ldap://localhost"}
@@ -234,15 +216,41 @@ setup_vhosts() {
     fi
     update_db vmaps
 
-    set_config_value "virtual_mailbox_base" "/var/spool/vmail"
-    set_config_value "virtual_minimum_uid" "1000"
-    set_config_value "virtual_uid_maps" "static:${VMAIL_UID}"
-    set_config_value "virtual_gid_maps" "static:${VMAIL_UID}"
-    set_config_value "home_mailbox" "Maildir/"
-    # XXX make this configureable and adjust message_size_limit
-    set_config_value "virtual_mailbox_limit" "0"
-    set_config_value "mailbox_size_limit" "0" # "51200000"
-    set_config_value "message_size_limit" "0" # "10240000"
+    if [ -n "${LMTP}" ]; then
+	# Use LMTP to deliver the mail to the user
+
+	set_config_value "virtual_transport" "lmtp:${LMTP}:24"
+    else
+	# Store mails local below /var/spool/vmail
+
+	# Create the vmail user with the requested UID, else 5000
+	VMAIL_UID="${VMAIL_UID:-5000}"
+	if [ -x /usr/sbin/adduser ]; then
+	    adduser -D -h /var/spool/vmail -g "Virtual Mail User" -u "${VMAIL_UID}" -s /sbin/nologin vmail
+	else
+            useradd -d /var/spool/vmail -U -c "Virtual Mail User" -u "${VMAIL_UID}" vmail
+	fi
+	if [ $? -ne 0 ]; then
+            echo "ERROR: creating of vmail user failed! Aborting."
+            exit 1
+	fi
+
+	if [ ! -d /var/spool/vmail ]; then
+            mkdir -p /var/spool/vmail
+            chown vmail:vmail /var/spool/vmail
+            chmod 775 /var/spool/vmail
+	fi
+
+	set_config_value "virtual_mailbox_base" "/var/spool/vmail"
+	set_config_value "virtual_minimum_uid" "1000"
+	set_config_value "virtual_uid_maps" "static:${VMAIL_UID}"
+	set_config_value "virtual_gid_maps" "static:${VMAIL_UID}"
+	set_config_value "home_mailbox" "Maildir/"
+	# XXX make this configureable and adjust message_size_limit
+	set_config_value "virtual_mailbox_limit" "0"
+	set_config_value "mailbox_size_limit" "0" # "51200000"
+	set_config_value "message_size_limit" "0" # "10240000"
+    fi
 }
 
 configure_postfix() {
