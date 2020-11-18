@@ -14,4 +14,4 @@ scope = sub
 query_filter = maildrop=%s
 #result_attribute = homeDirectory
 #result_format = %s/Maildir/
-result_format = %u/
+result_format = %d/%u/
