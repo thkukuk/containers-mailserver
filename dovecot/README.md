@@ -93,11 +93,13 @@ Add `--env DOVECOT_TLS=0` to the run command: `podman run -e DOVECOT_TLS=0 ...`
 - `LDAP_TLS_CA_CRT`     LDAP CA certificate to verify connections.
 
 ### Various configuration variables:
-- `USE_VMAIL_USER=1`	Enable VMAIL user, defaults to `1`  
-- `VMAIL_UID=5000`      UID/GID of vmail user. All files in `/var/spool/vmail` will be changed to this UID/GID
-- `ENABLE_IMAP=[0|1]`   Enables imap support, defaults to `1`
-- `ENABLE_POP3=[0|1]`   Enables pop3 support, defaults to `0`
-- `ENABLE_LMTP=[0|1]`	Enables mail delivery via LMTP, defaults to `0`
+- `USE_VMAIL_USER=1`	     Enable VMAIL user, defaults to `1`  
+- `VMAIL_UID=5000`           UID/GID of vmail user. All files in `/var/spool/vmail` will be changed to this UID/GID
+- `ENABLE_IMAP=[0|1]`        Enables imap support, defaults to `1`
+- `ENABLE_POP3=[0|1]`        Enables pop3 support, defaults to `0`
+- `ENABLE_LMTP=[0|1]`	     Enables mail delivery via LMTP, defaults to `0`
+- `ENABLE_SIEVE=[0|1]`       Enables sieve support if LMTP is enabled, defaults to `1`
+- `ENABLE_MANAGESIEVE=[0|1]` Enables ManageSieve, requires to export Port 4190. Only available if ENABLE_LMTP and ENABLE_SIEVE are set to `1`. Defaults to `0`
 
 ## Data persistence volumes
 - `/var/spool/vmail`	Mail storage

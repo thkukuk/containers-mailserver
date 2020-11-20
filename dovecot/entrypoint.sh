@@ -13,6 +13,8 @@ VMAIL_UID=${VMAIL_UID:-"5000"}
 ENABLE_IMAP=${ENABLE_IMAP:-"1"}
 ENABLE_POP3=${ENABLE_POP3:-"0"}
 ENABLE_LMTP=${ENABLE_LMTP:-"0"}
+ENABLE_SIEVE=${ENABLE_SIEVE:-"1"}
+ENABLE_MANAGESIEVE=${ENABLE_MANAGESIEVE:-"0"}
 
 # TLS
 DOVECOT_TLS=${DOVECOT_TLS:-"1"}
@@ -123,6 +125,9 @@ setup_default_config() {
 	sed -i -e 's|^#verbose_ssl =.*|verbose_ssl = yes|g' /etc/dovecot/conf.d/10-logging.conf
     fi
 
+    # Don't allow plaintext authentication
+    sed -i -e 's|^#disable_plaintext_auth =.*|disable_plaintext_auth = yes|g' /etc/dovecot/conf.d/10-auth.conf
+
     # Where to find the mailfolders and which uid/gid to use
     sed -i -e 's|^#mail_location =.*|mail_location = maildir:/var/spool/vmail/%n|g' /etc/dovecot/conf.d/10-mail.conf
 
@@ -175,8 +180,34 @@ EOT
   }
 }
 EOT
-    fi
 
+	if [ "${ENABLE_SIEVE}" = "1" ]; then
+	    cat << 'EOT' > /etc/dovecot/conf.d/20-lmtp.conf
+protocol lmtp {
+  #mail_fsync = optimized
+  mail_plugins = $mail_plugins sieve
+}
+EOT
+	    sed -i -e 's|sieve =.*|sieve = file:/var/spool/vmail/%n/sieve;active=/var/spool/vmail/%n/.dovecot.sieve|g' /etc/dovecot/conf.d/90-sieve.conf
+
+	    if [ "${ENABLE_MANAGESIEVE}" = "1" ]; then
+		cat << 'EOT' > /etc/dovecot/conf.d/20-managesieve.conf
+protocols = $protocols sieve
+
+service managesieve-login {
+  inet_listener sieve {
+    port = 4190
+  }
+
+  # Number of connections to handle before starting a new process. Typically
+  # the only useful values are 0 (unlimited) or 1. 1 is more secure, but 0
+  # is faster. <doc/wiki/LoginProcess.txt>
+  service_count = 1
+}
+EOT
+	    fi
+	fi
+    fi
 
     sed -i -e "s|^#protocols =.*|protocols = ${PROTOCOLS}|g" /etc/dovecot/dovecot.conf
 }

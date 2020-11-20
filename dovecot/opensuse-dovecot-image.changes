@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Nov 20 14:57:58 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Add sieve support
+
+-------------------------------------------------------------------
 Tue Nov 17 15:51:25 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Add LMTP support
