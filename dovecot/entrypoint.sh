@@ -247,7 +247,11 @@ function setup_tls() {
     echo "Add TLS config..."
 
     mkdir -p "${DOVECOT_CERTS_DIR}"
-    /common-scripts/ssl-helper "$DOVECOT_TLS_CRT" "$DOVECOT_TLS_KEY" "$DOVECOT_TLS_CA_CRT" "$DOVECOT_TLS_CA_KEY"
+    if [ ! -e "$DOVECOT_TLS_CRT" ] || [ ! -e "$DOVECOT_TLS_KEY" ]; then
+	if ! /common-scripts/ssl-helper "$DOVECOT_TLS_CRT" "$DOVECOT_TLS_KEY" "$DOVECOT_TLS_CA_CRT" "$DOVECOT_TLS_CA_KEY"; then
+	    exit 1
+	fi
+    fi
 
     # create DHParamFile if not found
     if [ ! -f "${DOVECOT_TLS_DH_PARAM}" ]; then
