@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Dec 18 21:12:23 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Fix error caused by uninitialized DEBUG variable
+
+-------------------------------------------------------------------
 Wed Jul 15 09:06:59 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Fix sed call

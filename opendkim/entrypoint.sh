@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DEBUG=${DEBUG:-"0"}
+
 [ "${DEBUG}" -eq "1" ] && set -x
 
 export PATH=/usr/sbin:/sbin:${PATH}

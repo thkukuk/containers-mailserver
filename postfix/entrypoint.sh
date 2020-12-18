@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DEBUG=${DEBUG:-"0"}
+
 [ "${DEBUG}" = "1" ] && set -x
 
 VIRTUAL_MBOX=${VIRTUAL_MBOX:-"0"}

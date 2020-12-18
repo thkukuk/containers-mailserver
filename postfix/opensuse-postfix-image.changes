@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Dec 18 21:12:37 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Fix error caused by uninitialized DEBUG variable 
+
+-------------------------------------------------------------------
 Wed Nov 18 17:59:37 UTC 2020 - Thorsten Kukuk <kukuk@thkukuk.de>
 
 - Enhance documentation
