@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Dec 20 21:24:32 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Add support for spamassassin
+
+-------------------------------------------------------------------
 Sun Dec 20 10:49:08 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Set local_header_rewrite_clients to static:all if domain
