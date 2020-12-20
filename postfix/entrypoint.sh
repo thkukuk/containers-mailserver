@@ -152,6 +152,8 @@ setup_relayhost() {
 
     if [ -n "${MASQUERADE_DOMAINS}" ]; then
         set_config_value "masquerade_domains" "${MASQUERADE_DOMAINS}"
+        # Requires since postfix 2.2
+        set_config_value "local_header_rewrite_clients" "static:all"
     fi
 }
 
