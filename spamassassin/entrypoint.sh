@@ -24,7 +24,9 @@ setup_timezone() {
 
 setup_timezone
 
+echo -n "Updating spamassassin rules..."
 sa-update
+echo " done"
 
 # if command starts with an option, prepend spamd default command
 if [ "${1:0:1}" = '-' ]; then
