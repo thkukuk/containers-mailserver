@@ -5,6 +5,7 @@
 - [Supported environment variables](#supported-environment-variables)
   - [Generic variables](#generic-variables)
   - [SMTP related variables](#smtp-related-variables)
+  - [Activate additional checks](#activate-additional-checks)
   - [Virtual mailbox related variables](#virtual-mailbox-related-variables)
   - [LDAP related variables](#ldap-related-variables)
 - [Data persistence volumes](#data-persistence-volumes)
@@ -44,6 +45,9 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `MASQUERADE_DOMAINS`	Comma separated list of domains that must have their subdomain structure stripped off.
 - `MYDESTINATION`	List of domains for which mails are delivered locally instead of forwarding to another machine.
 - `LMTP=host`           Host on which the lmtp service is running. This will disable the usage of the vmail user account.
+
+### Activate additional checks
+- `SPAMASSASSIN_HOST`	Host on which spamd is running. Enables Spam checking.
 
 ### Virtual mailbox related variables
 - `VIRTUAL_MBOX=[0|1]`	Create virtual mail boxes in /var/spool/vmail owned by user vmail.

@@ -291,6 +291,12 @@ configure_postfix() {
     setup_aliases
 }
 
+setup_spamassassin() {
+    if [ -n "${SPAMASSASSIN_HOST}" ]; then
+	set_config_value "smtpd_milters" "unix:/run/spamass-milter/socket"
+    fi
+}
+
 terminate() {
     base=$(basename "$1")
     pid=$(/bin/pidof "$base")
@@ -306,11 +312,16 @@ terminate() {
 }
 
 init_trap() {
-    trap stop_postfix TERM INT
+    trap stop_daemons TERM INT
+}
+
+stop_spamassassin() {
+    terminate /usr/sbin/spamass-milter
 }
 
 stop_postfix() {
 
+    echo "XXX sec=$1 XXX"
     typeset -i sec=$1
     typeset -i ms=$((sec*100))
 
@@ -325,10 +336,21 @@ stop_postfix() {
     terminate /usr/sbin/syslogd
 }
 
-start_postfix() {
+stop_daemons() {
+    stop_postfix "$@"
+    stop_spamassassin
+}
+
+start_daemons() {
     # Don't start syslogd in background while starting it in the background...
     # Logging to stdout does not work else.
     /usr/sbin/syslogd -n -S -O - &
+    if [ -n "${SPAMASSASSIN_HOST}" ]; then
+	mkdir /run/spamass-milter
+	chown sa-milter:postfix /run/spamass-milter
+	chmod 751 /run/spamass-milter
+	su sa-milter -s /bin/sh -c "/usr/sbin/spamass-milter -p /run/spamass-milter/socket -g postfix -f -- -d ${SPAMASSASSIN_HOST}"
+    fi
     "$@"
 }
 
@@ -348,13 +370,14 @@ update-ca-certificates
 # configure postfix even if postfix will not be started, to
 # allow to see the result with postconf for debugging/testing.
 configure_postfix
+setup_spamassassin
 
 # If host mounting /var/spool/postfix, we need to delete the old pid file
 # before starting services
 rm -f /var/spool/postfix/pid/master.pid
 
 if [ "$1" = 'postfix' ]; then
-    start_postfix "$@"
+    start_daemons "$@"
     echo "postfix running and ready"
     /usr/bin/pause
 else
