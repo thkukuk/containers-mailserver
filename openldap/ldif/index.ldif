@@ -12,4 +12,4 @@ olcDbIndex: objectClass eq
 olcdbindex: mailacceptinggeneralid eq,sub
 olcdbindex: maildrop eq
 # for misc schema (mail alias)
-olcdbindex: mailLocalAddress
+olcdbindex: mailLocalAddress eq
