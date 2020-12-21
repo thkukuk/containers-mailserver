@@ -233,7 +233,7 @@ setup_ldap() {
     sed -i -e 's|^#auth_bind =.*|auth_bind = yes|g' /etc/dovecot/dovecot-ldap.conf.ext
     sed -i -e "s|^#auth_bind_userdn =.*|auth_bind_userdn = uid=%u,${LDAP_BASE_DN}|g" /etc/dovecot/dovecot-ldap.conf.ext
     sed -i -e 's|^#scope =.*|scope = subtree|g' /etc/dovecot/dovecot-ldap.conf.ext
-    sed -i -e 's|^#user_attrs =.*|user_attrs = homeDirectory=home,uidNumber=uid,gidNumber=gid|g' /etc/dovecot/dovecot-ldap.conf.ext
+    sed -i -e 's|^#user_attrs =.*|user_attrs = uidNumber=uid,gidNumber=gid|g' /etc/dovecot/dovecot-ldap.conf.ext
     sed -i -e 's/^#user_filter =.*/user_filter = (\&(objectClass=posixAccount)(|(uid=%u)(maildrop=%u)))/g' /etc/dovecot/dovecot-ldap.conf.ext
     if [ "${LDAP_USE_TLS}" = "1" ]; then
 	sed -i -e 's|^#tls =.*|tls = yes|g' /etc/dovecot/dovecot-ldap.conf.ext
