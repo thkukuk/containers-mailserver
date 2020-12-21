@@ -11,3 +11,5 @@ olcDbIndex: objectClass eq
 # for postfix schema
 olcdbindex: mailacceptinggeneralid eq,sub
 olcdbindex: maildrop eq
+# for misc schema (mail alias)
+olcdbindex: mailLocalAddress
