@@ -131,7 +131,8 @@ setup_default_config() {
     sed -i -e 's|^#disable_plaintext_auth =.*|disable_plaintext_auth = yes|g' /etc/dovecot/conf.d/10-auth.conf
 
     # Where to find the mailfolders and which uid/gid to use
-    sed -i -e 's|^#mail_location =.*|mail_location = maildir:/var/spool/vmail/%n|g' /etc/dovecot/conf.d/10-mail.conf
+    echo "mail_home=/var/spool/vmail/%n" >> /etc/dovecot/conf.d/10-mail.conf
+    sed -i -e 's|^#mail_location =.*|mail_location = maildir:~/Maildir|g' /etc/dovecot/conf.d/10-mail.conf
 
     echo -e "#default_process_limit = 100\n#default_client_limit = 1000\n" > /etc/dovecot/conf.d/10-master.conf
 
