@@ -187,7 +187,11 @@ setup_vhosts() {
 	     fi
 	done
 
-	set_config_value "virtual_alias_domains" "ldap:/etc/postfix/ldap/virtual_alias_domains"
+	# Don't use VIRUAL_DOMAINS and ldap:virtual_alias_domains at the same time, postfix does
+	# not like this
+	if [ -z "${VIRTUAL_DOMAINS}" ]; then
+	    set_config_value "virtual_alias_domains" "ldap:/etc/postfix/ldap/virtual_alias_domains"
+	fi
 	set_config_value "virtual_alias_maps" "ldap:/etc/postfix/ldap/virtual_alias_maps"
 	set_config_value "virtual_mailbox_maps" "ldap:/etc/postfix/ldap/virtual_mailbox_maps"
 	set_config_value "smtpd_sender_login_maps" "ldap:/etc/postfix/ldap/smtpd_sender_login_maps"
@@ -214,8 +218,10 @@ setup_vhosts() {
 	    for d in ${VIRTUAL_DOMAINS}; do
 		echo "$d" >> /etc/postfix/vhosts
 	    done
-        else
+        elif [ -n "${SERVER_DOMAIN}" ]; then
 	    echo "${SERVER_DOMAIN}" > /etc/postfix/vhosts
+	else
+	    touch /etc/postfix/vhosts
         fi
     fi
     update_db vmaps

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Dec 21 11:57:21 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Rework container description
+- Fix virtual domain handling: don't use environment variable and
+  LDAP at the same time.
+
+-------------------------------------------------------------------
 Sun Dec 20 21:24:32 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Add support for spamassassin
