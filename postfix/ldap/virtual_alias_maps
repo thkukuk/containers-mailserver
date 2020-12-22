@@ -11,5 +11,5 @@ bind_pw = @LDAP_BIND_PASSWORD@
 search_base = ou=mail,@LDAP_BASE_DN@
 scope = sub
 
-query_filter = mailacceptinggeneralid=%s
+query_filter = (|(mailacceptinggeneralid=%s)(mailLocalAddress=%s))
 result_attribute = maildrop

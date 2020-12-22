@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec 22 07:46:18 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
+
+- Use mailLocalAddress (LDAP) for mail aliases, too.
+
+-------------------------------------------------------------------
 Mon Dec 21 11:57:21 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Rework container description
