@@ -44,6 +44,7 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `INET_PROTOCOLS`	The network interface protocols used for connections. Valid values are "all", "ipv4", "ipv6" or "ipv4,ipv6". The default value is "ipv4".
 - `MASQUERADE_DOMAINS`	Comma separated list of domains that must have their subdomain structure stripped off.
 - `MYDESTINATION`	List of domains for which mails are delivered locally instead of forwarding to another machine.
+- `NULLCLIENT=[0|1]`	Don't accept any mails locally but relay them to a remote host. Ignored if `MYDESTINATION` is set. The default is `1`.
 - `LMTP=host`           Host on which the lmtp service is running. This will disable the usage of the vmail user account.
 
 ### Activate additional checks

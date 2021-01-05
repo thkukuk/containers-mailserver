@@ -6,6 +6,7 @@ DEBUG=${DEBUG:-"0"}
 
 VIRTUAL_MBOX=${VIRTUAL_MBOX:-"0"}
 USE_LDAP=${USE_LDAP:-"0"}
+NULLCLIENT=${NULLCLIENT:-"1"}
 
 export PATH=/usr/sbin:/sbin:${PATH}
 
@@ -133,6 +134,10 @@ setup_relayhost() {
         set_config_value "smtp_tls_CApath" "/etc/postfix/ssl/cacerts"
         # Debug only:
         # set_config_value "smtp_tls_loglevel" "2"
+
+	if [ "${NULLCLIENT}" -eq "1" ] && [ -z "${MYDESTINATION}" ] ; then
+	    set_config_value "mydestination" ""
+	fi
     fi
 
     if [ -n "${SMTP_USERNAME}" ]; then
@@ -277,10 +282,11 @@ configure_postfix() {
 
     if [ "${VIRTUAL_MBOX}" -eq "1" ]; then
         setup_vhosts
+    fi
+    if [ -n "${MYDESTINATION}" ]; then
+	set_config_value "mydestination" "${MYDESTINATION}"
     else
-        if [ -n "${MYDESTINATION}" ]; then
-	    set_config_value "mydestination" "${MYDESTINATION}"
-        fi
+	set_config_value "mydestination" "\$myhostname, localhost.\$mydomain, localhost"
     fi
 
     setup_relayhost
