@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan  5 14:40:45 UTC 2021 - Thorsten Kukuk <kukuk@suse.com>
+
+- Add "NULLCLIENT" support for pure relayhosts 
+
+-------------------------------------------------------------------
 Tue Dec 22 07:46:18 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Use mailLocalAddress (LDAP) for mail aliases, too.
