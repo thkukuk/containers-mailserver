@@ -26,3 +26,4 @@ podman run registry.opensuse.org/opensuse/spamassassin man spamassassin
 
 ## Volumes
 - `/var/lib/spamassassin`	Store the updated rules
+- `/etc/mail/spamassassin`	Configuration files
