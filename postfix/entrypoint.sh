@@ -128,12 +128,6 @@ setup_relayhost() {
     if [ -n "${SMTP_RELAYHOST}" ]; then
         SMTP_PORT="${SMTP_PORT:-587}"
         set_config_value "relayhost" "${SMTP_RELAYHOST}:${SMTP_PORT}"
-        set_config_value "smtp_use_tls" "yes"
-        # XXX enforce tls, not sure if this is always a good idea
-        set_config_value "smtp_enforce_tls" "yes"
-        set_config_value "smtp_tls_CApath" "/etc/postfix/ssl/cacerts"
-        # Debug only:
-        # set_config_value "smtp_tls_loglevel" "2"
 
 	if [ "${NULLCLIENT}" -eq "1" ] && [ -z "${MYDESTINATION}" ] ; then
 	    set_config_value "mydestination" ""
@@ -279,6 +273,13 @@ configure_postfix() {
 	set_config_value "myhostname" "${SERVER_HOSTNAME}"
         set_config_value "mydomain" "${SERVER_DOMAIN}"
     fi
+
+    # Generic settings
+    SMTP_TLS_SECURITY_LEVEL=${SMTP_TLS_SECURITY_LEVEL:-"may"}
+    set_config_value "smtp_tls_security_level" "${SMTP_TLS_SECURITY_LEVEL}"
+    set_config_value "smtp_tls_CApath" "/etc/postfix/ssl/cacerts"
+    # Debug only:
+    # set_config_value "smtp_tls_loglevel" "2"
 
     if [ "${VIRTUAL_MBOX}" -eq "1" ]; then
         setup_vhosts

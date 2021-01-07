@@ -45,6 +45,7 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `MASQUERADE_DOMAINS`	Comma separated list of domains that must have their subdomain structure stripped off.
 - `MYDESTINATION`	List of domains for which mails are delivered locally instead of forwarding to another machine.
 - `NULLCLIENT=[0|1]`	Don't accept any mails locally but relay them to a remote host. Ignored if `MYDESTINATION` is set. The default is `1`.
+- `SMTP_TLS_SECURITY_LEVEL`	SMTP TLS security level. The default is `may`.
 - `LMTP=host`           Host on which the lmtp service is running. This will disable the usage of the vmail user account.
 
 ### Activate additional checks
