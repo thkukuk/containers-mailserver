@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan  7 14:06:04 UTC 2021 - Thorsten Kukuk <kukuk@suse.com>
+
+- Rename volume to /etc/spamassassin and merge provided
+  configuration files
+
+-------------------------------------------------------------------
 Wed Jan  6 13:08:32 UTC 2021 - Thorsten Kukuk <kukuk@suse.com>
 
 - Add /etc/mail/spamassassin as volume for configuration files

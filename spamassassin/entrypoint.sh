@@ -24,6 +24,10 @@ setup_timezone() {
 
 setup_timezone
 
+if [ -d /etc/spamassassin ] && [ -n "$(ls -A /etc/spamassassin)" ]; then
+    cp -av /etc/spamassassin/* /etc/mail/spamassassin/
+fi
+
 echo -n "Updating spamassassin rules..."
 sa-update
 echo " done"
