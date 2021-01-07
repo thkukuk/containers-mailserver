@@ -24,6 +24,12 @@ This image runs Dovecot as IMAP and POP3 email server. The user accounts are fet
 
 Instructions: [README](dovecot/README.md)
 
+## SpamAssassin
+
+This image runs SpamAssassin to classify mails as Spam for postfix.
+
+Instructions: [README](spamassassin/README.md)
+
 ## DKIM
 
 This images provides the `DomainKeys Identified Mail (DKIM)` service
