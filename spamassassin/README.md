@@ -25,7 +25,8 @@ The rules are updated at every start of the container.
 ## Data persistence
 
 The updated database is not stored in a persistence way, it will be
-updated at every start again. Except a volume for /var/lib/
+updated at every start again. Except a volume for /var/lib/spamassassin
+is created and provided.
 
 ## Supported environment variables:
 - `DEBUG=0|1`		Enables debug mode
