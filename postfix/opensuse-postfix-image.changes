@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan  7 15:26:43 UTC 2021 - Thorsten Kukuk <kukuk@suse.com>
+
+- Add "SMTP_TLS_SECURITY_LEVEL" confguration variable
+
+-------------------------------------------------------------------
 Tue Jan  5 14:40:45 UTC 2021 - Thorsten Kukuk <kukuk@suse.com>
 
 - Add "NULLCLIENT" support for pure relayhosts 
