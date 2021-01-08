@@ -54,6 +54,7 @@
     <package name="bash"/>
     <package name="postfix"/>
     <package name="postfix-ldap"/>
+    <package name="postfix-lmdb"/>
     <package name="mandoc"/>
     <package name="netcfg"/>
     <package name="cyrus-sasl"/>
