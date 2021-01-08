@@ -1,4 +1,4 @@
-# Sample Mail Relay Server
+# Simple Mail Relay Server
 
 This example will describe how to setup a postfix relay server. All mails will
 be forwarded to another mail server, nothing is stored locally.
