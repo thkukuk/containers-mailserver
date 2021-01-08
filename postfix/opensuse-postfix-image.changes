@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan  8 14:35:00 UTC 2021 - Thorsten Kukuk <kukuk@suse.com>
+
+- Use LMDB instead of BDB in preparation of obsoleting BDB
+
+-------------------------------------------------------------------
 Thu Jan  7 15:26:43 UTC 2021 - Thorsten Kukuk <kukuk@suse.com>
 
 - Add "SMTP_TLS_SECURITY_LEVEL" confguration variable

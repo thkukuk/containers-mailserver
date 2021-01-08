@@ -63,8 +63,8 @@ update_db() {
     while test "x$1" != "x" ; do
         pfmap=/etc/postfix/${1}
         test -e "${pfmap}" && \
-            if test "${pfmap}" -nt "${pfmap}.db" -o ! -e "${pfmap}.db" ; then
-		echo "rebuilding ${pfmap}.db"
+            if test "${pfmap}" -nt "${pfmap}.lmdb" -o ! -e "${pfmap}.lmdb" ; then
+		echo "rebuilding ${pfmap}.lmdb"
 		postmap "${pfmap}" || failed=1
 		if [ "$failed" ]; then
 		    echo "ERROR: postmap ${pfmap} failed!"
@@ -88,13 +88,13 @@ setup_aliases() {
 	    done
     }
 
-    echo "Building /etc/aliases.db."
+    echo "Building /etc/aliases.lmdb."
     /usr/bin/newaliases
 
-    ALLMAPS="hash:/etc/aliases"
+    ALLMAPS="lmdb:/etc/aliases"
     for i in $(get_alias_maps); do
-        ALLMAPS="${ALLMAPS}, hash:$i"
-	echo "Building $i.db"
+        ALLMAPS="${ALLMAPS}, lmdb:$i"
+	echo "Building $i.lmdb"
 	postalias "${i}" || failed=1
 	if [ "${failed}" ]; then
 	    echo "ERROR: postalias ${i} failed!"
@@ -144,7 +144,7 @@ setup_relayhost() {
         echo "Adding SASL authentication configuration"
         echo "${SMTP_RELAYHOST} ${SMTP_USERNAME}:${SMTP_PASSWORD}" >> /etc/postfix/sasl_passwd
         update_db sasl_passwd
-        set_config_value "smtp_sasl_password_maps" "hash:/etc/postfix/sasl_passwd"
+        set_config_value "smtp_sasl_password_maps" "lmdb:/etc/postfix/sasl_passwd"
         set_config_value "smtp_sasl_auth_enable" "yes"
         set_config_value "smtp_sasl_security_options" "noanonymous"
     fi
@@ -195,8 +195,8 @@ setup_vhosts() {
 	set_config_value "virtual_mailbox_maps" "ldap:/etc/postfix/ldap/virtual_mailbox_maps"
 	set_config_value "smtpd_sender_login_maps" "ldap:/etc/postfix/ldap/smtpd_sender_login_maps"
     else
-	set_config_value "virtual_mailbox_maps" "hash:/etc/postfix/vmaps"
-	set_config_value "virtual_mailbox_limit_maps" "hash:/etc/postfix/vquota"
+	set_config_value "virtual_mailbox_maps" "lmdb:/etc/postfix/vmaps"
+	set_config_value "virtual_mailbox_limit_maps" "lmdb:/etc/postfix/vquota"
 
 	# Only create vmaps if not provided by admin
 	if [ ! -f /etc/postfix/vmaps ]; then
@@ -275,10 +275,14 @@ configure_postfix() {
     fi
 
     # Generic settings
+    ## Use lmdb instead of "hash" to get rid of BDB
+    set_config_value "default_database_type" "lmdb"
+    sed -i -e 's|hash:|lmdb:|g' /etc/postfix/main.cf
+    ## TLS
     SMTP_TLS_SECURITY_LEVEL=${SMTP_TLS_SECURITY_LEVEL:-"may"}
     set_config_value "smtp_tls_security_level" "${SMTP_TLS_SECURITY_LEVEL}"
     set_config_value "smtp_tls_CApath" "/etc/postfix/ssl/cacerts"
-    # Debug only:
+    ## Debug only:
     # set_config_value "smtp_tls_loglevel" "2"
 
     if [ "${VIRTUAL_MBOX}" -eq "1" ]; then
@@ -294,10 +298,10 @@ configure_postfix() {
 
     # Add maps to config and create database
     for i in canonical relocated sender_canonical transport virtual; do
-	set_config_value "${i}_maps" "hash:/etc/postfix/${i}"
+	set_config_value "${i}_maps" "lmdb:/etc/postfix/${i}"
 	update_db "${i}"
     done
-    set_config_value "smtpd_sender_restrictions" "hash:/etc/postfix/access"
+    set_config_value "smtpd_sender_restrictions" "lmdb:/etc/postfix/access"
     # Generate and update maps
     update_db access relay
 
