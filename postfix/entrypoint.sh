@@ -89,6 +89,7 @@ setup_aliases() {
     }
 
     echo "Building /etc/aliases.lmdb."
+    set_config_value "alias_database" "lmdb:/etc/aliases"
     /usr/bin/newaliases
 
     ALLMAPS="lmdb:/etc/aliases"
