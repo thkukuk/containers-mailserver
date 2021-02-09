@@ -31,6 +31,12 @@ This image runs SpamAssassin to classify mails as Spam for postfix.
 
 Instructions: [README](spamassassin/README.md)
 
+### fetchmaiil
+
+This image runs fetchmail to pull mails from another IMAP or POP3 server and submit them locally.
+
+Instructions: [README](fetchmail/README.md)
+
 ### DKIM
 
 This images provides the `DomainKeys Identified Mail (DKIM)` service
