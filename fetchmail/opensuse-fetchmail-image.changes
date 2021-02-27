@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Feb 27 10:26:46 UTC 2021 - Thorsten Kukuk <kukuk@suse.com>
+
+- Add timezone package
+
+-------------------------------------------------------------------
 Fri Dec 18 08:50:43 UTC 2020 - Thorsten Kukuk <kukuk@suse.com>
 
 - Initial version 

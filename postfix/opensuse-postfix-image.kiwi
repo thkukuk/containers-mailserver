@@ -63,6 +63,7 @@
     <package name="ca-certificates-mozilla"/>
     <package name="spamassassin-spamc"/>
     <package name="spamass-milter"/>
+    <package name="timezone"/>
     <package name="-busybox-findutils"/>
     <package name="-busybox-man"/>
     <package name="-busybox-sendmail"/>

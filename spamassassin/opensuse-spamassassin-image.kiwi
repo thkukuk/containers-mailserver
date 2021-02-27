@@ -60,6 +60,7 @@
     <package name="gpg2"/>
     <package name="mandoc"/>
     <package name="wget"/>
+    <package name="timezone"/>
     <package name="-busybox-wget"/>
     <package name="-busybox-adduser"/>
     <package name="-busybox-man"/>
