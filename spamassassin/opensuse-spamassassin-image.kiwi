@@ -18,15 +18,6 @@
         additionaltags="%PKG_VERSION%,%PKG_VERSION%-%RELEASE%"
         maintainer="Thorsten Kukuk &lt;kukuk@suse.com&gt;">
 	<entrypoint execute="/entrypoint.sh"/>
-        <subcommand execute="/usr/sbin/spamd">
-          <argument name="--nouser-config"/>
-          <argument name="-s"/>
-          <argument name="stderr"/>
-          <argument name="--listen"/>
-          <argument name="*"/>
-          <argument name="-A"/>
-          <argument name="0.0.0.0/0"/>
-        </subcommand>
         <expose>
           <port number='783'/>
         </expose>
