@@ -60,5 +60,6 @@
     <package name="ca-certificates-mozilla"/>
     <package name="-busybox-man"/>
     <archive name="common-scripts.tar.gz"/>
+    <archive name="entrypoint.tar.gz"/>
   </packages>
 </image>
