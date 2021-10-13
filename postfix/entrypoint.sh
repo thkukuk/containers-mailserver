@@ -304,7 +304,7 @@ configure_postfix() {
     done
     set_config_value "smtpd_sender_restrictions" "lmdb:/etc/postfix/access"
     # Generate and update maps
-    update_db access relay
+    update_db access relay relay_recipients
 
     setup_aliases
 }
