@@ -67,6 +67,9 @@ function term_handler() {
 
 setup_timezone
 
+# Make sure certificates are current
+/usr/sbin/update-ca-certificates
+
 if [ -d /etc/spamassassin ] && [ -n "$(ls -A /etc/spamassassin)" ]; then
     cp -av /etc/spamassassin/* /etc/mail/spamassassin/
 fi
