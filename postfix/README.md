@@ -48,6 +48,12 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `SMTP_TLS_SECURITY_LEVEL`	SMTP TLS security level. The default is `may`.
 - `LMTP=host`           Host on which the lmtp service is running. This will disable the usage of the vmail user account.
 
+### Accepting mails on port 587 (submission)
+- `ENABLE_SUBMISSION=[0|1]`	Enable submission port. The default is `0`.
+- `SMTPD_USE_TLS=[0|1 ]`        Enforce TLS. The default is `0`.
+- `SMTPD_TLS_CRT=`              Path to certificate, default `/etc/postfix/ssl/certs/tls.crt`
+- `SMTPD_TLS_KEY=`              Path to public key, default `/etc/postfix/ssl/certs/tls.key`
+
 ### Activate additional checks
 - `SPAMASSASSIN_HOST`	Host on which spamd is running. Enables Spam checking.
 
