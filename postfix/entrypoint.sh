@@ -8,6 +8,7 @@ VIRTUAL_MBOX=${VIRTUAL_MBOX:-"0"}
 USE_LDAP=${USE_LDAP:-"0"}
 NULLCLIENT=${NULLCLIENT:-"1"}
 ENABLE_SUBMISSION=${ENABLE_SUBMISSION:-"0"}
+ENABLE_SUBMISSIONS=${ENABLE_SUBMISSIONS:-"0"}
 
 export PATH=/usr/sbin:/sbin:${PATH}
 
@@ -159,28 +160,44 @@ setup_relayhost() {
 }
 
 setup_submission() {
+    SMTPD_USE_TLS=${SMTPD_USE_TLS:-"0"}
+
     if [ "${ENABLE_SUBMISSION}" -eq "1" ]; then
 	echo "Enable submission port"
-
-        SMTPD_USE_TLS=${SMTPD_USE_TLS:-"0"}
 
 	echo "submission inet n       -       n       -       -       smtpd" >> /etc/postfix/master.cf
 	echo " -o syslog_name=postfix/submission" >> /etc/postfix/master.cf
 
 	if [ "${SMTPD_USE_TLS}" -eq "1" ]; then
-	    echo "Enable TLS for smtpd"
-
-	    SMTPD_TLS_CRT=${SMTPD_TLS_CRT:-"/etc/postfix/ssl/certs/tls.crt"}
-	    SMTPD_TLS_KEY=${SMTPD_TLS_KEY:-"/etc/postfix/ssl/certs/tls.key"}
-
 	    echo " -o smtpd_tls_security_level=encrypt" >> /etc/postfix/master.cf
 	    echo " -o smtpd_sasl_auth_enable=no" >> /etc/postfix/master.cf
 	    #echo " -o smtpd_client_restrictions=permit_sasl_authenticated,reject" >> /etc/postfix/master.cf
-	    set_config_value "smtpd_use_tls" "yes"
-	    set_config_value "smtpd_tls_CApath" "/etc/ssl/certs"
-	    set_config_value "smtpd_tls_cert_file" "${SMTPD_TLS_CRT}"
-	    set_config_value "smtpd_tls_key_file" "${SMTPD_TLS_KEY}"
 	fi
+    fi
+
+    if [ "${ENABLE_SUBMISSIONS}" -eq "1" ]; then
+	if [ "${SMTPD_USE_TLS}" -eq "1" ]; then
+	    echo "Enable submissions port"
+
+	    echo "smtps inet n       -       n       -       -       smtpd" >> /etc/postfix/master.cf
+	    echo " -o syslog_name=postfix/smtps" >> /etc/postfix/master.cf
+	    echo " -o smtpd_tls_wrappermode=yes" >> /etc/postfix/master.cf
+	    echo " -o smtpd_sasl_auth_enable=no" >> /etc/postfix/master.cf
+	else
+	    echo "WARNING: ENABLE_SUBMISSIONS requires SMTPD_USE_TLS, ignoring!"
+	fi
+    fi
+
+    if [ "${SMTPD_USE_TLS}" -eq "1" ]; then
+	echo "Enable TLS for smtpd"
+
+	SMTPD_TLS_CRT=${SMTPD_TLS_CRT:-"/etc/postfix/ssl/certs/tls.crt"}
+	SMTPD_TLS_KEY=${SMTPD_TLS_KEY:-"/etc/postfix/ssl/certs/tls.key"}
+
+	set_config_value "smtpd_use_tls" "yes"
+	set_config_value "smtpd_tls_CApath" "/etc/ssl/certs"
+	set_config_value "smtpd_tls_cert_file" "${SMTPD_TLS_CRT}"
+	set_config_value "smtpd_tls_key_file" "${SMTPD_TLS_KEY}"
     fi
 }
 
