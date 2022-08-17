@@ -440,7 +440,7 @@ rm -f /var/spool/postfix/pid/master.pid
 if [ "$1" = 'postfix' ]; then
     start_daemons "$@"
     echo "postfix running and ready"
-    /usr/bin/pause
+    sleep infinity & wait $!
 else
     exec "$@"
 fi
