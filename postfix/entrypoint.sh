@@ -324,6 +324,9 @@ configure_postfix() {
     set_config_value "default_database_type" "lmdb"
     sed -i -e 's|hash:|lmdb:|g' /etc/postfix/main.cf
     ## TLS
+    if [ -n "${SMTP_TLS_WRAPPERMODE}" ]; then
+       set_config_value "smtp_tls_wrappermode" "${SMTP_TLS_WRAPPERMODE}"
+    fi
     SMTP_TLS_SECURITY_LEVEL=${SMTP_TLS_SECURITY_LEVEL:-"may"}
     set_config_value "smtp_tls_security_level" "${SMTP_TLS_SECURITY_LEVEL}"
     set_config_value "smtp_tls_CApath" "/etc/postfix/ssl/cacerts"
