@@ -2,7 +2,7 @@
 
 <!-- OBS-ExcludeArch: i586 s390 -->
 
-<image schemaversion="6.9" name="opensuse-opendkim-image" xmlns:suse_label_helper="com.suse.label_helper">
+<image schemaversion="7.4" name="opensuse-opendkim-image">
   <description type="system">
     <author>Thorsten Kukuk</author>
     <contact>kukuk@suse.com</contact>
@@ -31,7 +31,7 @@
           <volume name="/etc/opendkim/keys"/>
         </volumes>
         <labels>
-          <suse_label_helper:add_prefix prefix="org.opensuse.opendkim">
+          <suse_label_helper:add_prefix xmlns:suse_label_helper="com.suse.label_helper" prefix="org.opensuse.opendkim">
             <label name="org.opencontainers.image.title" value="openSUSE opendkim container"/>
             <label name="org.opencontainers.image.description" value="Image containing opendkim daemon."/>
             <label name="org.opencontainers.image.version" value="%PKG_VERSION%-%RELEASE%"/>
