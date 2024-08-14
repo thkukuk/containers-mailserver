@@ -19,7 +19,7 @@
         maintainer="Thorsten Kukuk &lt;kukuk@suse.com&gt;">
 	<entrypoint execute="/entrypoint/entrypoint.sh"/>
         <subcommand execute="postfix">
-          <argument name="start"/>
+          <argument name="start-fg"/>
         </subcommand>
 	<expose>
 	  <port number='25'/>
