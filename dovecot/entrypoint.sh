@@ -149,8 +149,7 @@ service imap-login {
         ssl = yes
     }
 
-    service_count = 1
-    process_min_avail = 1
+    service_restart_request_count = 1
 }
 
 EOT
