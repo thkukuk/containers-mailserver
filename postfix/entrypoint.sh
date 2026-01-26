@@ -346,6 +346,7 @@ configure_postfix() {
 
     # Add maps to config and create database
     for i in canonical relocated sender_canonical transport virtual; do
+	test -f "/etc/postfix/${i}" || continue
 	set_config_value "${i}_maps" "lmdb:/etc/postfix/${i}"
 	update_db "${i}"
     done
