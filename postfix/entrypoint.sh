@@ -192,8 +192,6 @@ setup_submission() {
 	SMTPD_TLS_CRT=${SMTPD_TLS_CRT:-"/etc/postfix/ssl/certs/tls.crt"}
 	SMTPD_TLS_KEY=${SMTPD_TLS_KEY:-"/etc/postfix/ssl/certs/tls.key"}
 
-	# smtpd_use_tls is deprecated and only for compatibility
-	set_config_value "smtpd_use_tls" "yes"
 	set_config_value "smtpd_tls_security_level" "may"
 	set_config_value "smtpd_tls_CApath" "/etc/ssl/certs"
 	set_config_value "smtpd_tls_cert_file" "${SMTPD_TLS_CRT}"
