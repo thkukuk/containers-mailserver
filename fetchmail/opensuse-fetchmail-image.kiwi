@@ -47,6 +47,7 @@
     <package name="ca-certificates"/>
     <package name="ca-certificates-mozilla"/>
     <package name="timezone"/>
+    <package name="-busybox-coreutils"/>
     <package name="-busybox-man"/>
   </packages>
 </image>

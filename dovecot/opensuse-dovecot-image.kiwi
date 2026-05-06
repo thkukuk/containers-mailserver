@@ -60,6 +60,7 @@
     <package name="timezone"/>
     <package name="openssl"/>
     <package name="-busybox-adduser"/>
+    <package name="-busybox-coreutils"/>
     <package name="-busybox-man"/>
     <archive name="common-scripts.tar.gz"/>
   </packages>

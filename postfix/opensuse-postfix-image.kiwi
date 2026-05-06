@@ -65,6 +65,7 @@
     <package name="spamassassin-spamc"/>
     <package name="spamass-milter"/>
     <package name="timezone"/>
+    <package name="-busybox-coreutils"/>
     <package name="-busybox-man"/>
     <package name="-busybox-sendmail"/>
     <package name="-busybox-iproute2"/>
