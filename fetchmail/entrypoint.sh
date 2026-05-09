@@ -38,8 +38,8 @@ setup_timezone
 
 if [ ! -d /var/lib/fetchmail ]; then
   mkdir -p /var/lib/fetchmail
-  chown root:fetchmail /var/lib/fetchmail
-  chmod 0755 /var/lib/fetchmail
+  chown fetchmail:fetchmail /var/lib/fetchmail
+  chmod 0700 /var/lib/fetchmail
 fi
 if [ -e /etc/fetchmailrc ] && [ ! -e /var/lib/fetchmail/fetchmailrc ]; then
   cp /etc/fetchmailrc /var/lib/fetchmail/fetchmailrc
