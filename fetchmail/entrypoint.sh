@@ -26,7 +26,7 @@ setup_timezone() {
 # Main
 #
 
-OPTS="-d "${POLLING_INTERVAL}" -f /var/lib/fetchmail/fetchmailrc --nodetach --nosyslog"
+OPTS="-d ${POLLING_INTERVAL} -f /var/lib/fetchmail/fetchmailrc --nodetach --nosyslog"
 [ "$DEBUG" -eq "1" ] && OPTS="$OPTS -v"
 [ "$FETCHALL" -eq "1" ] && OPTS="$OPTS -a"
 [ "$SILENT" -eq "1" ] && OPTS="$OPTS -s"
@@ -36,6 +36,11 @@ setup_timezone
 
 /usr/sbin/update-ca-certificates
 
+if [ ! -d /var/lib/fetchmail ]; then
+  mkdir -p /var/lib/fetchmail
+  chown root:fetchmail /var/lib/fetchmail
+  chmod 0755 /var/lib/fetchmail
+fi
 if [ -e /etc/fetchmailrc ] && [ ! -e /var/lib/fetchmail/fetchmailrc ]; then
   cp /etc/fetchmailrc /var/lib/fetchmail/fetchmailrc
   chown fetchmail:fetchmail /var/lib/fetchmail/fetchmailrc
