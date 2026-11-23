@@ -47,6 +47,8 @@ In all examples, `podman` can be replaced directly with `docker`.
 - `NULLCLIENT=[0|1]`	Don't accept any mails locally but relay them to a remote host. Ignored if `MYDESTINATION` is set. The default is `1`.
 - `SMTP_TLS_SECURITY_LEVEL`	SMTP TLS security level. The default is `may`.
 - `LMTP=host`           Host on which the lmtp service is running. This will disable the usage of the vmail user account.
+- `MESSAGE_SIZE_LIMIT`	Maximum size in bytes of a message, including envelope information (postfix's `message_size_limit`). E.g. use `52428800` to allow messages up to 50MB. The postfix default is `10240000` (~10MB). Setting this also raises `mailbox_size_limit` to unlimited (unless `MAILBOX_SIZE_LIMIT` is set), since postfix requires `mailbox_size_limit` to be `0` or `>= message_size_limit`.
+- `MAILBOX_SIZE_LIMIT`	Maximum size in bytes of a mailbox/queue file (postfix's `mailbox_size_limit`). Use `0` for unlimited.
 
 ### Accepting mails on port 587 (submission) and 465 (submissions/smtps)
 - `ENABLE_SUBMISSION=[0|1]`	Enable submission port. The default is `0`.
